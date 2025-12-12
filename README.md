@@ -166,7 +166,7 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 **Configuration:**
 - Port: `8000` (local)
 - Cookie File: `data/instagram_cookies.txt` (Netscape format)
-- External URL: `https://raspberrypi.tail83ea3e.ts.net/instagram/download` (via Tailscale Funnel on 443)
+- External URL: `https://vladsberry.tail83ea3e.ts.net/instagram/download` (via Tailscale Funnel on 443)
 - **Blockchain Integration**: Hive blockchain posting, Ethereum/Farcaster protocols
 - **Content Management**: Video uploads, blog posts, community interactions
 - **Skate Mapping**: Interactive maps for skate spot sharing
@@ -242,7 +242,7 @@ The **webapp (skatehive3.0)** consumes shared backend services:
 |---------|-----|:--------:|
 | Oracle (Primary) | `146-235-239-243.sslip.io/transcode` | 1 |
 | Mac Mini M4 (Secondary) | `minivlad.tail9656d3.ts.net/video/transcode` | 2 |
-| Raspberry Pi (Tertiary) | `raspberrypi.tail83ea3e.ts.net/video/transcode` | 3 |
+| Raspberry Pi (Tertiary) | `vladsberry.tail83ea3e.ts.net/video/transcode` | 3 |
 
 ### 🔗 Other Shared Services
 

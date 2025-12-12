@@ -98,13 +98,13 @@ const getInstagramServers = () => {
   if (isDevelopment) {
     return [
       'http://localhost:6666/download',  // ✅ Already fixed!
-      'https://raspberrypi.tail83ea3e.ts.net/instagram/download',
+      'https://vladsberry.tail83ea3e.ts.net/instagram/download',
       'https://skate-insta.onrender.com/download'
     ];
   } else {
     return [
       'https://minivlad.tail9656d3.ts.net/instagram/download',  // ✅ Mac Mini primary
-      'https://raspberrypi.tail83ea3e.ts.net/instagram/download',
+      'https://vladsberry.tail83ea3e.ts.net/instagram/download',
       'https://skate-insta.onrender.com/download'
     ];
   }
@@ -311,14 +311,14 @@ https://minivlad.tail9656d3.ts.net/  // Default port 443, proxied to 3001
 // Development:
 [
   'http://localhost:6666/download',  // ✅ Correct!
-  'https://raspberrypi.tail83ea3e.ts.net/instagram/download',
+  'https://vladsberry.tail83ea3e.ts.net/instagram/download',
   'https://skate-insta.onrender.com/download'
 ]
 
 // Production:
 [
   'https://minivlad.tail9656d3.ts.net/instagram/download',  // Mac Mini M4
-  'https://raspberrypi.tail83ea3e.ts.net/instagram/download',  // Raspberry Pi
+  'https://vladsberry.tail83ea3e.ts.net/instagram/download',  // Raspberry Pi
   'https://skate-insta.onrender.com/download'  // Render fallback
 ]
 ```
@@ -348,7 +348,7 @@ https://minivlad.tail9656d3.ts.net/  // Default port 443, proxied to 3001
    
    - Tailscale Mesh Network
      ├── minivlad.tail9656d3.ts.net (Mac Mini M4)
-     ├── raspberrypi.tail83ea3e.ts.net (Raspberry Pi)
+     ├── vladsberry.tail83ea3e.ts.net (Raspberry Pi)
      └── Funnel public routing
 
    - Cloud Services

@@ -23,7 +23,7 @@ This guide covers day-to-day operations for the SkateHive infrastructure, includ
 
 ### Infrastructure Components:
 - **Primary Host:** Mac Mini M4 (minivlad.tail9656d3.ts.net)
-- **Secondary Host:** Raspberry Pi 5 (raspberrypi.tail83ea3e.ts.net)
+- **Secondary Host:** Raspberry Pi 5 (vladsberry.tail83ea3e.ts.net)
 - **Container Runtime:** Docker with Docker Compose
 - **Network:** Tailscale mesh with Funnel for public access
 - **Services:** 4 primary services across 2 hosts
@@ -516,7 +516,7 @@ tailscale status
 tailscale ip -4
 
 # Test mesh connectivity
-ping raspberrypi.tail83ea3e.ts.net
+ping vladsberry.tail83ea3e.ts.net
 ```
 
 ---
@@ -776,24 +776,24 @@ curl https://minivlad.tail9656d3.ts.net/rc-status
 
 ```bash
 # 1. Verify Raspberry Pi is accessible
-ping raspberrypi.tail83ea3e.ts.net
+ping vladsberry.tail83ea3e.ts.net
 
 # 2. Copy critical files to Pi:
 scp skatehive-instagram-downloader/ytipfs-worker/cookies/cookies.txt \
-    pi@raspberrypi.tail83ea3e.ts.net:/path/to/monorepo/skatehive-instagram-downloader/ytipfs-worker/cookies/
+    pi@vladsberry.tail83ea3e.ts.net:/path/to/monorepo/skatehive-instagram-downloader/ytipfs-worker/cookies/
 
 # 3. Start services on Pi:
-ssh pi@raspberrypi.tail83ea3e.ts.net
+ssh pi@vladsberry.tail83ea3e.ts.net
 cd /path/to/skatehive-monorepo
 docker-compose up -d
 
 # 4. Update DNS/routing (if needed)
-# - Update application to point to raspberrypi.tail83ea3e.ts.net
+# - Update application to point to vladsberry.tail83ea3e.ts.net
 # - Or reconfigure Tailscale Funnel
 
 # 5. Verify services
-curl https://raspberrypi.tail83ea3e.ts.net/video/healthz
-curl https://raspberrypi.tail83ea3e.ts.net/instagram/health
+curl https://vladsberry.tail83ea3e.ts.net/video/healthz
+curl https://vladsberry.tail83ea3e.ts.net/instagram/health
 ```
 
 ---

@@ -106,8 +106,8 @@ curl -v https://minivlad.tail9656d3.ts.net/instagram/health
 curl -v https://minivlad.tail9656d3.ts.net/healthz
 
 # Test Raspberry Pi Services  
-curl -v https://raspberrypi.tail83ea3e.ts.net/video/healthz
-curl -v https://raspberrypi.tail83ea3e.ts.net/instagram/health
+curl -v https://vladsberry.tail83ea3e.ts.net/video/healthz
+curl -v https://vladsberry.tail83ea3e.ts.net/instagram/health
 
 # Test Instagram Cookie Status
 curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
@@ -430,8 +430,8 @@ curl -s https://minivlad.tail9656d3.ts.net/instagram/health | jq
 curl -s https://minivlad.tail9656d3.ts.net/healthz | jq
 
 echo "\nTesting Raspberry Pi services..."
-curl -s https://raspberrypi.tail83ea3e.ts.net/video/healthz | jq
-curl -s https://raspberrypi.tail83ea3e.ts.net/instagram/health | jq
+curl -s https://vladsberry.tail83ea3e.ts.net/video/healthz | jq
+curl -s https://vladsberry.tail83ea3e.ts.net/instagram/health | jq
 
 echo "\nChecking Docker containers..."
 docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"

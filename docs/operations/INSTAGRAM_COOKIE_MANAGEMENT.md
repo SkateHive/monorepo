@@ -482,7 +482,7 @@ import datetime
 
 ENDPOINTS = [
     "https://minivlad.tail9656d3.ts.net/instagram/cookies/status",
-    "https://raspberrypi.tail83ea3e.ts.net/instagram/cookies/status"
+    "https://vladsberry.tail83ea3e.ts.net/instagram/cookies/status"
 ]
 
 WARNING_DAYS = 7

@@ -23,7 +23,7 @@ The webapp's Instagram health check shows:
   "healthy": true,
   "servers": [
     {
-      "server": "http://raspberrypi.tail83ea3e.ts.net:8000",
+      "server": "http://vladsberry.tail83ea3e.ts.net:8000",
       "healthy": false,
       "error": "Server timeout"
     },
@@ -37,12 +37,12 @@ The webapp's Instagram health check shows:
 ```
 
 ## Root Cause
-The webapp running on `localhost:3000` cannot reach `http://raspberrypi.tail83ea3e.ts.net:8000` due to network isolation, but the local Docker service is running perfectly on `localhost:8000`.
+The webapp running on `localhost:3000` cannot reach `http://vladsberry.tail83ea3e.ts.net:8000` due to network isolation, but the local Docker service is running perfectly on `localhost:8000`.
 
 ## Verified Working Services
 ✅ **Local Docker service**: `http://localhost:8000` - Working perfectly with Instagram cookies
 ✅ **Render service**: `https://skate-insta.onrender.com` - Working as backup
-❌ **Tailscale from localhost**: `http://raspberrypi.tail83ea3e.ts.net:8000` - Timeout (network isolation)
+❌ **Tailscale from localhost**: `http://vladsberry.tail83ea3e.ts.net:8000` - Timeout (network isolation)
 
 ## Task: Fix Instagram Service Configuration
 
@@ -61,7 +61,7 @@ const getInstagramAPIs = () => {
   return [
     isDevelopment 
       ? 'http://localhost:8000'                    // Local Docker service
-      : 'http://raspberrypi.tail83ea3e.ts.net:8000', // Production Tailscale
+      : 'http://vladsberry.tail83ea3e.ts.net:8000', // Production Tailscale
     'https://skate-insta.onrender.com'             // Always as backup
   ];
 };
@@ -80,7 +80,7 @@ NEXT_PUBLIC_INSTAGRAM_API_BACKUP=https://skate-insta.onrender.com
 
 **`.env.production` (for production):**
 ```env
-NEXT_PUBLIC_INSTAGRAM_API_PRIMARY=http://raspberrypi.tail83ea3e.ts.net:8000
+NEXT_PUBLIC_INSTAGRAM_API_PRIMARY=http://vladsberry.tail83ea3e.ts.net:8000
 NEXT_PUBLIC_INSTAGRAM_API_BACKUP=https://skate-insta.onrender.com
 ```
 
@@ -103,7 +103,7 @@ Look for these files in your `skatehive3.0` project:
 Use these search patterns to find the configuration:
 ```bash
 # Find Instagram API configurations
-grep -r "raspberrypi.tail83ea3e.ts.net" .
+grep -r "vladsberry.tail83ea3e.ts.net" .
 grep -r "skate-insta.onrender.com" .
 grep -r "INSTAGRAM_API" .
 grep -r "instagram.*download" . --include="*.ts" --include="*.js"
@@ -146,7 +146,7 @@ After the fix, the health check should show:
 
 ### Why This Works
 - **Local development**: Uses `localhost:8000` (Docker service on same machine)
-- **Production deployment**: Uses `raspberrypi.tail83ea3e.ts.net:8000` (Tailscale for remote access)
+- **Production deployment**: Uses `vladsberry.tail83ea3e.ts.net:8000` (Tailscale for remote access)
 - **Always has backup**: Render service provides redundancy
 - **No network isolation**: localhost can always reach localhost
 

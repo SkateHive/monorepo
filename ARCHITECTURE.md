@@ -70,7 +70,7 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
   - VSC Node (port 8080)
 
 #### 🥧 Raspberry Pi 5 (Secondary/Backup)
-- **Tailscale Name:** `raspberrypi.tail83ea3e.ts.net`
+- **Tailscale Name:** `vladsberry.tail83ea3e.ts.net`
 - **Role:** Backup services, development
 - **Status:** ✅ Active
 - **Services:**
@@ -100,7 +100,7 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
 │                                                                   │
 │  Tailscale Funnel + HTTPS Routing                                │
 │  • minivlad.tail9656d3.ts.net/*                                  │
-│  • raspberrypi.tail83ea3e.ts.net/*                               │
+│  • vladsberry.tail83ea3e.ts.net/*                               │
 │                                                                   │
 └───────────────────────────┬──────────────────────────────────────┘
                             │
@@ -200,7 +200,7 @@ Internet
    │      │     ├─► /instagram/* → localhost:8000
    │      │     └─► /healthz → localhost:3001
    │      │
-   │      └─► raspberrypi.tail83ea3e.ts.net
+   │      └─► vladsberry.tail83ea3e.ts.net
    │            ├─► /video/* → localhost:8081
    │            └─► /instagram/* → localhost:8000
    │
@@ -213,7 +213,7 @@ Internet
 
 ### Public Access URLs:
 - **Mac Mini Services:** `https://minivlad.tail9656d3.ts.net/*`
-- **Raspberry Pi Services:** `https://raspberrypi.tail83ea3e.ts.net/*`
+- **Raspberry Pi Services:** `https://vladsberry.tail83ea3e.ts.net/*`
 
 ### Internal Communication:
 - All services communicate via Tailscale private network (100.x.x.x)

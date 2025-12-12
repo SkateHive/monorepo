@@ -42,7 +42,7 @@ User Browser (No Compression)
          ↓ (if fails)
 ┌────────────────────────────────┐
 │  Priority 3: Raspberry Pi      │
-│  (raspberrypi.tail83ea3e.ts.net)│
+│  (vladsberry.tail83ea3e.ts.net)│
 │  - Tertiary fallback            │
 │  - Lower priority               │
 │  - Emergency backup only        │
@@ -246,7 +246,7 @@ if (secondaryResult.success) return secondaryResult;
 
 // Priority 3: Raspberry Pi (Tertiary/Fallback)
 const tertiaryResult = await tryServer(
-  'https://raspberrypi.tail83ea3e.ts.net/video/transcode',
+  'https://vladsberry.tail83ea3e.ts.net/video/transcode',
   file, username, 'Raspberry Pi (Tertiary)', enhancedOptions
 );
 if (tertiaryResult.success) return tertiaryResult;
