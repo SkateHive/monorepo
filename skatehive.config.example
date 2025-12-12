@@ -47,11 +47,15 @@ HIVE_ACCOUNT=""
 HIVE_POSTING_KEY=""
 
 # =============================================================================
-# OTHER NODES (for failover)
+# OTHER NODES (for multi-node monitoring)
 # =============================================================================
-# Comma-separated list of other SkateHive node URLs for health checks
-# Example: "https://minivlad.tail9656d3.ts.net,https://raspberrypi.tail83ea3e.ts.net"
+# Comma-separated list of other SkateHive nodes for health checks/failover
+# Format: "node_id:hostname:role" (role is optional, defaults to "secondary")
+# Example: "raspberry:raspberrypi.tail83ea3e.ts.net:secondary,backup:mybackup.ts.net"
 OTHER_NODES=""
+
+# Display name for this node (shown in dashboard)
+NODE_DISPLAY_NAME=""
 
 # =============================================================================
 # ALERTS (Optional)

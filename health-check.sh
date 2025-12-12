@@ -61,13 +61,13 @@ echo -e "${BLUE}🎬 Video Transcoder Service (Port 8081):${NC}"
 test_endpoint "http://localhost:8081/healthz" "Local Health" "ok"
 test_endpoint "http://$TAILSCALE_URL:8081/healthz" "Tailscale Health" "ok"
 
-echo -e "${BLUE}📱 Instagram Downloader Service (Port 8000):${NC}"
-test_endpoint "http://localhost:8000/health" "Local Health" "status"
-test_endpoint "http://$TAILSCALE_URL:8000/health" "Tailscale Health" "status"
+echo -e "${BLUE}📱 Instagram Downloader Service (Port $INSTAGRAM_DOWNLOADER_PORT):${NC}"
+test_endpoint "http://localhost:$INSTAGRAM_DOWNLOADER_PORT/health" "Local Health" "status"
+test_endpoint "http://$TAILSCALE_URL:$INSTAGRAM_DOWNLOADER_PORT/health" "Tailscale Health" "status"
 
 echo -e "${BLUE}🍪 Instagram Cookie Authentication:${NC}"
 echo -e "${YELLOW}Local Cookie Status:${NC}"
-cookie_response=$(curl -s --max-time 5 "http://localhost:8000/cookies/status" 2>/dev/null)
+cookie_response=$(curl -s --max-time 5 "http://localhost:$INSTAGRAM_DOWNLOADER_PORT/cookies/status" 2>/dev/null)
 curl_exit_code=$?
 
 if [ $curl_exit_code -eq 0 ]; then
