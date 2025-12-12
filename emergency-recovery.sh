@@ -2,17 +2,28 @@
 # SkateHive Mac Mini Emergency Recovery Script
 # Run this manually if services don't start automatically after power outage
 
+# Auto-detect monorepo root (works from any location)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
+
 echo "🚨 SkateHive Emergency Recovery Starting..."
+echo "📁 Monorepo root: $MONOREPO_ROOT"
 
 # Kill any stuck processes
 echo "🧹 Cleaning up stuck processes..."
 pkill -f "docker"
 sleep 5
 
-# Start Docker Desktop
-echo "🐳 Starting Docker Desktop..."
-open /Applications/Docker.app
-sleep 20
+# Start Docker Desktop (macOS) or Docker daemon (Linux)
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "🐳 Starting Docker Desktop..."
+    open /Applications/Docker.app
+    sleep 20
+else
+    echo "🐳 Starting Docker service..."
+    sudo systemctl start docker 2>/dev/null || sudo service docker start 2>/dev/null
+    sleep 10
+fi
 
 # Wait for Docker to be ready
 echo "⏳ Waiting for Docker daemon..."
@@ -24,8 +35,8 @@ echo "✅ Docker is ready"
 
 # Start containers
 echo "📦 Starting containers..."
-cd /Users/vladnikolaev/skatehive-monorepo/skatehive-video-transcoder && docker-compose up -d
-cd /Users/vladnikolaev/skatehive-monorepo/skatehive-instagram-downloader/ytipfs-worker && docker-compose up -d
+cd "$MONOREPO_ROOT/skatehive-video-transcoder" && docker-compose up -d
+cd "$MONOREPO_ROOT/skatehive-instagram-downloader/ytipfs-worker" && docker-compose up -d
 
 # Start Tailscale
 echo "🔗 Starting Tailscale..."

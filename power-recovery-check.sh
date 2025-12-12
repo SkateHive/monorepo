@@ -2,10 +2,15 @@
 # SkateHive Mac Mini Power Recovery & Health Check Script
 # This script ensures all services are running after power outages/reboots
 
-LOG_FILE="/Users/vladnikolaev/skatehive-monorepo/power-recovery.log"
+# Auto-detect monorepo root (works from any location)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
+
+LOG_FILE="$MONOREPO_ROOT/power-recovery.log"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
 echo "[$TIMESTAMP] 🔋 SkateHive Power Recovery Check Started" | tee -a "$LOG_FILE"
+echo "[$TIMESTAMP] 📁 Monorepo root: $MONOREPO_ROOT" | tee -a "$LOG_FILE"
 
 # Function to log with timestamp
 log() {
@@ -58,7 +63,7 @@ check_containers() {
         log "✅ Video transcoder container is running"
     else
         log "⚠️ Video transcoder container not running, attempting to start..."
-        cd /Users/vladnikolaev/skatehive-monorepo/skatehive-video-transcoder
+        cd "$MONOREPO_ROOT/skatehive-video-transcoder"
         docker-compose up -d
     fi
     
@@ -67,7 +72,7 @@ check_containers() {
         log "✅ Instagram downloader container is running"
     else
         log "⚠️ Instagram downloader container not running, attempting to start..."
-        cd /Users/vladnikolaev/skatehive-monorepo/skatehive-instagram-downloader/ytipfs-worker
+        cd "$MONOREPO_ROOT/skatehive-instagram-downloader/ytipfs-worker"
         docker-compose up -d
     fi
 }

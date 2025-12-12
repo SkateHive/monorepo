@@ -3,8 +3,12 @@
 # Instagram Cookie Health Monitor
 # Checks cookie expiration and alerts when refresh needed
 
-COOKIE_FILE="/home/pi/skatehive-monorepo/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
-LOG_FILE="/home/pi/cookie-monitor.log"
+# Auto-detect monorepo root (works from any location)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
+
+COOKIE_FILE="$MONOREPO_ROOT/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
+LOG_FILE="$HOME/cookie-monitor.log"
 ALERT_DAYS=7  # Alert when cookies expire in less than 7 days
 
 echo "🍪 Instagram Cookie Health Check - $(date)" | tee -a "$LOG_FILE"

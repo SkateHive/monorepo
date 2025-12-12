@@ -5,8 +5,12 @@ echo "🍪 Instagram Cookie Authentication Setup"
 echo "======================================="
 echo ""
 
+# Auto-detect monorepo root (works from any location)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
+
 CONTAINER_NAME="ytipfs-worker"
-COOKIES_PATH="/home/pi/skatehive-monorepo/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
+COOKIES_PATH="$MONOREPO_ROOT/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
 
 echo "1. Current cookie status:"
 curl -s http://localhost:8000/cookies/status | jq .

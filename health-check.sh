@@ -3,8 +3,13 @@
 # Comprehensive Health Check Script for SkateHive Services
 # Tests both local and Tailscale endpoints
 
+# Auto-detect monorepo root (works from any location)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
+
 echo "🏥 SkateHive Services Health Check"
 echo "=================================="
+echo "📁 Monorepo root: $MONOREPO_ROOT"
 echo ""
 
 # Colors for output
@@ -16,7 +21,7 @@ NC='\033[0m' # No Color
 
 # Tailscale info
 TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "N/A")
-TAILSCALE_URL="raspberrypi.tail83ea3e.ts.net"
+TAILSCALE_URL="${TAILSCALE_HOSTNAME:-$(hostname).tail$(tailscale status --json 2>/dev/null | grep -o '"DomainName":"[^"]*' | cut -d'"' -f4 | sed 's/.*\.//')}"
 
 echo -e "${BLUE}📡 Tailscale Status:${NC}"
 echo "   IP: $TAILSCALE_IP"
@@ -152,7 +157,7 @@ echo ""
 
 echo -e "${BLUE}💾 Storage Status:${NC}"
 echo "Disk Usage:"
-df -h /home/pi/skatehive-monorepo | tail -n +2 | awk '{print "   Available: " $4 " (" $5 " used)"}'
+df -h "$MONOREPO_ROOT" | tail -n +2 | awk '{print "   Available: " $4 " (" $5 " used)"}'
 echo ""
 
 echo -e "${BLUE}🌐 Network Test:${NC}"
