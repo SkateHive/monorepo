@@ -327,7 +327,71 @@ All Services ←─────────── Dashboard Monitoring ←──
 - Docker & Docker Compose
 - Python 3.8+ (for dashboard)
 - Node.js 18+ (for main app)
+- pnpm (`npm install -g pnpm`)
 - Pinata account with JWT token
+- Git with SSH key configured for GitHub
+
+### 🔧 Assembling the Monorepo Locally
+
+This monorepo uses a **hybrid Git structure**: the root folder is a Git repository that tracks documentation and scripts, while each service subdirectory is an independent Git repository.
+
+#### Fresh Clone (New Machine)
+
+```bash
+# 1. Clone the root monorepo
+git clone git@github.com:SkateHive/monorepo.git skatehive-monorepo
+cd skatehive-monorepo
+
+# 2. Clone all service repositories
+git clone git@github.com:SkateHive/skatehive3.0.git
+git clone git@github.com:SkateHive/leaderboard-api.git
+git clone git@github.com:SkateHive/mobileapp.git
+git clone git@github.com:SkateHive/account-manager.git
+git clone git@github.com:SkateHive/skatehive-video-transcoder.git
+git clone git@github.com:SkateHive/skatehive-instagram-downloader.git
+git clone git@github.com:SkateHive/skatehive-dashboard.git
+git clone git@github.com:SkateHive/skatehive-docs.git
+git clone git@github.com:SkateHive/oracle-video-worker.git
+git clone git@github.com:SkateHive/vsc-node.git
+```
+
+#### Sync Existing Installation (e.g., Raspberry Pi, Mac Mini)
+
+If you already have the folder structure with service repos but the root isn't tracked:
+
+```bash
+cd ~/skatehive-monorepo
+
+# Initialize root repo and sync with GitHub
+git init
+git remote add origin git@github.com:SkateHive/monorepo.git
+git fetch origin
+git reset --hard origin/main
+```
+
+#### Pull All Repositories
+
+Create a helper script to update everything at once:
+
+```bash
+# Save as: ~/skatehive-monorepo/pull-all.sh
+#!/bin/bash
+echo "📦 Pulling root monorepo..."
+git pull
+
+echo "📦 Pulling all service repositories..."
+for dir in skatehive3.0 leaderboard-api mobileapp account-manager \
+           skatehive-video-transcoder skatehive-instagram-downloader \
+           skatehive-dashboard skatehive-docs oracle-video-worker vsc-node; do
+    if [ -d "$dir/.git" ]; then
+        echo "  → $dir"
+        (cd "$dir" && git pull)
+    fi
+done
+echo "✅ All repositories updated!"
+```
+
+Make it executable: `chmod +x pull-all.sh`
 
 ### Service Setup
 Each service includes its own README with detailed setup instructions:
