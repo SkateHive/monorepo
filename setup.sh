@@ -7,7 +7,8 @@
 #  Works on macOS and Linux (Raspberry Pi, Ubuntu, etc.)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-set -e
+# Don't exit on error for interactive script
+set +e
 
 # Colors
 RED='\033[0;31m'
@@ -59,20 +60,67 @@ info() {
     echo -e "${BLUE}ℹ${NC} $1"
 }
 
+# Progress indicator for long operations
+progress() {
+    local msg="$1"
+    echo -e -n "${CYAN}⟳${NC} $msg..."
+}
+
+progress_done() {
+    echo -e " ${GREEN}done${NC}"
+}
+
+progress_fail() {
+    echo -e " ${RED}failed${NC}"
+}
+
+# Spinner for background tasks
+spin() {
+    local pid=$1
+    local msg="${2:-Processing}"
+    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    local i=0
+    
+    echo -e -n "${CYAN}${msg}${NC} "
+    while kill -0 $pid 2>/dev/null; do
+        i=$(( (i+1) % ${#spinstr} ))
+        printf "\r${CYAN}${msg}${NC} ${spinstr:$i:1}"
+        sleep 0.1
+    done
+    printf "\r${CYAN}${msg}${NC}  \n"
+}
+
+# Check with timeout and progress
+check_with_progress() {
+    local name="$1"
+    local cmd="$2"
+    local timeout="${3:-10}"
+    
+    echo -e -n "  Checking $name... "
+    
+    if timeout $timeout bash -c "$cmd" &>/dev/null; then
+        echo -e "${GREEN}✓${NC}"
+        return 0
+    else
+        echo -e "${RED}✗${NC}"
+        return 1
+    fi
+}
+
 ask() {
     local prompt="$1"
     local default="$2"
     local result
     
     if [ -n "$default" ]; then
-        echo -e -n "${BOLD}$prompt${NC} [${CYAN}$default${NC}]: "
-        read result
-        echo "${result:-$default}"
+        printf "${BOLD}%s${NC} [${CYAN}%s${NC}]: " "$prompt" "$default" >&2
+        read -r result </dev/tty
+        result="${result:-$default}"
     else
-        echo -e -n "${BOLD}$prompt${NC}: "
-        read result
-        echo "$result"
+        printf "${BOLD}%s${NC}: " "$prompt" >&2
+        read -r result </dev/tty
     fi
+    echo "$result"
 }
 
 ask_yes_no() {
@@ -81,12 +129,12 @@ ask_yes_no() {
     local result
     
     if [ "$default" = "y" ]; then
-        echo -e -n "${BOLD}$prompt${NC} [${CYAN}Y/n${NC}]: "
+        printf "${BOLD}%s${NC} [${CYAN}Y/n${NC}]: " "$prompt" >&2
     else
-        echo -e -n "${BOLD}$prompt${NC} [${CYAN}y/N${NC}]: "
+        printf "${BOLD}%s${NC} [${CYAN}y/N${NC}]: " "$prompt" >&2
     fi
     
-    read result
+    read -r result </dev/tty
     result="${result:-$default}"
     
     [[ "$result" =~ ^[Yy] ]]
@@ -96,9 +144,9 @@ ask_secret() {
     local prompt="$1"
     local result
     
-    echo -e -n "${BOLD}$prompt${NC}: "
-    read -s result
-    echo ""
+    printf "${BOLD}%s${NC}: " "$prompt" >&2
+    read -rs result </dev/tty
+    echo "" >&2
     echo "$result"
 }
 
@@ -122,85 +170,132 @@ detect_os() {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 check_dependencies() {
-    print_step "Step 1/6: Checking Dependencies"
+    print_step "Step 1/7: Checking Dependencies"
     
     local missing=()
+    local checks=("git" "curl" "jq" "docker" "docker-compose" "tailscale" "node" "pnpm")
+    local total=${#checks[@]}
+    local current=0
+    
+    echo "Checking $total dependencies..."
+    echo ""
     
     # Check for required tools
     for cmd in git curl jq; do
+        ((current++))
+        printf "  [%d/%d] %-20s " "$current" "$total" "$cmd"
         if command -v $cmd &> /dev/null; then
-            success "$cmd is installed"
+            echo -e "${GREEN}✓ installed${NC}"
         else
-            error "$cmd is not installed"
+            echo -e "${RED}✗ missing${NC}"
             missing+=("$cmd")
         fi
     done
     
     # Check Docker
+    ((current++))
+    printf "  [%d/%d] %-20s " "$current" "$total" "docker"
     if command -v docker &> /dev/null; then
         if docker info &> /dev/null; then
-            success "Docker is installed and running"
+            echo -e "${GREEN}✓ running${NC}"
         else
-            warn "Docker is installed but not running"
-            if ask_yes_no "Start Docker now?"; then
+            echo -e "${YELLOW}⚠ not running${NC}"
+            if ask_yes_no "  Start Docker now?"; then
                 if [[ "$(detect_os)" == "macos" ]]; then
                     open /Applications/Docker.app
-                    info "Waiting for Docker to start..."
-                    sleep 15
+                    echo -e -n "  Waiting for Docker to start..."
+                    for i in {1..30}; do
+                        sleep 1
+                        echo -n "."
+                        if docker info &> /dev/null; then
+                            echo -e " ${GREEN}ready!${NC}"
+                            break
+                        fi
+                    done
                 else
                     sudo systemctl start docker 2>/dev/null || sudo service docker start 2>/dev/null
                 fi
             fi
         fi
     else
-        error "Docker is not installed"
+        echo -e "${RED}✗ not installed${NC}"
         missing+=("docker")
     fi
     
     # Check docker-compose
-    if command -v docker-compose &> /dev/null || docker compose version &> /dev/null; then
-        success "Docker Compose is available"
+    ((current++))
+    printf "  [%d/%d] %-20s " "$current" "$total" "docker-compose"
+    if command -v docker-compose &> /dev/null || docker compose version &> /dev/null 2>&1; then
+        echo -e "${GREEN}✓ available${NC}"
     else
-        error "Docker Compose is not installed"
+        echo -e "${RED}✗ missing${NC}"
         missing+=("docker-compose")
     fi
     
     # Check Tailscale
+    ((current++))
+    printf "  [%d/%d] %-20s " "$current" "$total" "tailscale"
     if command -v tailscale &> /dev/null; then
         if tailscale status &> /dev/null; then
-            success "Tailscale is installed and connected"
+            echo -e "${GREEN}✓ connected${NC}"
         else
-            warn "Tailscale is installed but not connected"
+            echo -e "${YELLOW}⚠ not connected${NC}"
         fi
     else
-        warn "Tailscale is not installed (optional but recommended)"
+        echo -e "${YELLOW}⚠ not installed (optional)${NC}"
     fi
     
     # Check Node.js (optional)
+    ((current++))
+    printf "  [%d/%d] %-20s " "$current" "$total" "node"
     if command -v node &> /dev/null; then
         local node_version=$(node --version)
-        success "Node.js $node_version is installed"
+        echo -e "${GREEN}✓ $node_version${NC}"
     else
-        warn "Node.js is not installed (needed for some services)"
+        echo -e "${YELLOW}⚠ not installed (optional)${NC}"
     fi
     
     # Check pnpm (optional)
+    ((current++))
+    printf "  [%d/%d] %-20s " "$current" "$total" "pnpm"
     if command -v pnpm &> /dev/null; then
-        success "pnpm is installed"
+        echo -e "${GREEN}✓ installed${NC}"
     else
-        warn "pnpm is not installed (run: npm install -g pnpm)"
-    fi
-    
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo ""
-        error "Missing required dependencies: ${missing[*]}"
-        echo ""
-        info "Install them and run this script again."
-        exit 1
+        echo -e "${YELLOW}⚠ not installed (npm i -g pnpm)${NC}"
     fi
     
     echo ""
-    success "All required dependencies are installed!"
+    
+    if [ ${#missing[@]} -gt 0 ]; then
+        error "Missing required dependencies: ${missing[*]}"
+        echo ""
+        echo "  Install them and run this script again."
+        echo ""
+        
+        # Offer installation guidance
+        for dep in "${missing[@]}"; do
+            case "$dep" in
+                "git")
+                    info "  Git: brew install git (macOS) or apt install git (Linux)"
+                    ;;
+                "curl")
+                    info "  Curl: brew install curl (macOS) or apt install curl (Linux)"
+                    ;;
+                "jq")
+                    info "  jq: brew install jq (macOS) or apt install jq (Linux)"
+                    ;;
+                "docker")
+                    info "  Docker: https://docs.docker.com/get-docker/"
+                    ;;
+                "docker-compose")
+                    info "  Docker Compose: Included with Docker Desktop, or: apt install docker-compose"
+                    ;;
+            esac
+        done
+        exit 1
+    fi
+    
+    success "All required dependencies installed!"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -208,7 +303,7 @@ check_dependencies() {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 configure_node() {
-    print_step "Step 2/6: Node Configuration"
+    print_step "Step 2/7: Node Configuration"
     
     # Check if config already exists
     if [ -f "$CONFIG_FILE" ]; then
@@ -402,30 +497,37 @@ check_repositories() {
     local outdated_repos=()
     local dirty_repos=()
     local ok_repos=()
+    local total=${#SKATEHIVE_REPOS[@]}
+    local current=0
     
-    echo "Checking all SkateHive repositories..."
+    echo "Checking $total repositories (fetching updates)..."
     echo ""
     
     for repo in "${SKATEHIVE_REPOS[@]}"; do
+        ((current++))
         local repo_path="$SCRIPT_DIR/$repo"
+        
+        # Show progress
+        printf "  [%2d/%d] %-35s " "$current" "$total" "$repo"
+        
         local status=$(check_repo_status "$repo_path")
         
         case "$status" in
             "missing")
-                echo -e "  ${RED}✗${NC} $repo - ${RED}Not cloned${NC}"
+                echo -e "${RED}✗ Not cloned${NC}"
                 missing_repos+=("$repo")
                 ;;
             "dirty")
-                echo -e "  ${YELLOW}⚠${NC} $repo - ${YELLOW}Has uncommitted changes${NC}"
+                echo -e "${YELLOW}⚠ Uncommitted changes${NC}"
                 dirty_repos+=("$repo")
                 ;;
             behind:*)
                 local count="${status#behind:}"
-                echo -e "  ${YELLOW}↓${NC} $repo - ${YELLOW}$count commits behind${NC}"
+                echo -e "${YELLOW}↓ $count commits behind${NC}"
                 outdated_repos+=("$repo")
                 ;;
             "ok")
-                echo -e "  ${GREEN}✓${NC} $repo - ${GREEN}Up to date${NC}"
+                echo -e "${GREEN}✓ Up to date${NC}"
                 ok_repos+=("$repo")
                 ;;
         esac
@@ -517,12 +619,15 @@ setup_services() {
             if [ -n "$PINATA_JWT" ]; then
                 echo "PINATA_JWT=$PINATA_JWT" > .env
                 success "Created .env with Pinata credentials"
+            else
+                warn "No Pinata JWT configured - videos won't upload to IPFS"
             fi
             
             docker-compose build
             success "Video Transcoder built"
         else
             warn "Video Transcoder directory not found"
+            info "Run: git clone git@github.com:SkateHive/skatehive-video-transcoder.git"
         fi
     fi
     
@@ -539,12 +644,53 @@ setup_services() {
             if [ -n "$PINATA_JWT" ]; then
                 echo "PINATA_JWT=$PINATA_JWT" > .env
                 success "Created .env with Pinata credentials"
+            else
+                warn "No Pinata JWT configured - downloads won't upload to IPFS"
+            fi
+            
+            # Check for cookies file
+            if [ -f "$instagram_dir/data/instagram_cookies.txt" ]; then
+                success "Instagram cookies file found"
+            else
+                warn "No Instagram cookies found - downloads may fail"
+                info "See: docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md"
             fi
             
             docker-compose build
             success "Instagram Downloader built"
         else
             warn "Instagram Downloader directory not found"
+            info "Run: git clone git@github.com:SkateHive/skatehive-instagram-downloader.git"
+        fi
+    fi
+    
+    echo ""
+    
+    # Account Manager
+    if ask_yes_no "Setup Account Manager?"; then
+        local account_dir="$SCRIPT_DIR/account-manager"
+        if [ -d "$account_dir" ]; then
+            info "Building Account Manager..."
+            cd "$account_dir"
+            
+            # Create .env for Account Manager
+            if [ -n "$HIVE_ACCOUNT" ] && [ -n "$HIVE_POSTING_KEY" ]; then
+                cat > .env << EOF
+HIVE_ACCOUNT=$HIVE_ACCOUNT
+HIVE_ACTIVE_KEY=$HIVE_POSTING_KEY
+PORT=3000
+EOF
+                success "Created .env with Hive credentials"
+            else
+                warn "No Hive credentials configured - account creation won't work"
+                info "Run ./setup.sh to configure Hive account"
+            fi
+            
+            docker-compose build 2>/dev/null || docker build -t account-manager .
+            success "Account Manager built"
+        else
+            warn "Account Manager directory not found"
+            info "Run: git clone git@github.com:SkateHive/account-manager.git"
         fi
     fi
     
@@ -638,6 +784,17 @@ start_services() {
         success "Instagram Downloader started"
     fi
     
+    # Start Account Manager (optional)
+    local account_dir="$SCRIPT_DIR/account-manager"
+    if [ -f "$account_dir/docker-compose.yml" ]; then
+        if ask_yes_no "Start Account Manager?"; then
+            info "Starting Account Manager..."
+            cd "$account_dir"
+            docker-compose up -d
+            success "Account Manager started"
+        fi
+    fi
+    
     cd "$SCRIPT_DIR"
     
     echo ""
@@ -659,6 +816,7 @@ verify_services() {
     source "$SCRIPT_DIR/load-config.sh" 2>/dev/null || true
     
     local all_ok=true
+    local issues=()
     
     echo -e "${BOLD}Docker Containers:${NC}"
     echo ""
@@ -669,6 +827,7 @@ verify_services() {
         success "Video Transcoder container: $video_status"
     else
         error "Video Transcoder container: Not running"
+        issues+=("video_container")
         all_ok=false
     fi
     
@@ -678,7 +837,16 @@ verify_services() {
         success "Instagram Downloader container: $insta_status"
     else
         error "Instagram Downloader container: Not running"
+        issues+=("instagram_container")
         all_ok=false
+    fi
+    
+    # Check Account Manager container
+    if docker ps --format "{{.Names}}" 2>/dev/null | grep -q "account-manager"; then
+        local am_status=$(docker ps --filter "name=account-manager" --format "{{.Status}}" 2>/dev/null)
+        success "Account Manager container: $am_status"
+    else
+        warn "Account Manager container: Not running (optional)"
     fi
     
     echo ""
@@ -691,16 +859,41 @@ verify_services() {
         success "Video Transcoder API: Responding on port $video_port"
     else
         error "Video Transcoder API: Not responding on port $video_port"
+        issues+=("video_api")
         all_ok=false
     fi
     
     # Test Instagram Downloader
-    local insta_port="${INSTAGRAM_DOWNLOADER_PORT:-8000}"
-    if curl -s --max-time 5 "http://localhost:$insta_port/health" | jq -e '.status' &>/dev/null; then
+    local insta_port="${INSTAGRAM_DOWNLOADER_PORT:-6666}"
+    local insta_response=$(curl -s --max-time 5 "http://localhost:$insta_port/health" 2>/dev/null)
+    if echo "$insta_response" | jq -e '.status' &>/dev/null; then
         success "Instagram Downloader API: Responding on port $insta_port"
+        
+        # Check cookie status
+        local cookies_valid=$(echo "$insta_response" | jq -r '.authentication.cookies_valid // false')
+        local cookies_exist=$(echo "$insta_response" | jq -r '.authentication.cookies_exist // false')
+        
+        if [ "$cookies_valid" = "true" ]; then
+            success "Instagram Cookies: Valid ✓"
+        elif [ "$cookies_exist" = "true" ]; then
+            warn "Instagram Cookies: Exist but invalid/expired"
+            issues+=("instagram_cookies")
+        else
+            warn "Instagram Cookies: Not configured"
+            issues+=("instagram_cookies_missing")
+        fi
     else
         error "Instagram Downloader API: Not responding on port $insta_port"
+        issues+=("instagram_api")
         all_ok=false
+    fi
+    
+    # Test Account Manager (port 3001 external -> 3000 internal)
+    local am_port="${ACCOUNT_MANAGER_PORT:-3001}"
+    if curl -s --max-time 5 "http://localhost:$am_port/healthz" | jq -e '.' &>/dev/null; then
+        success "Account Manager API: Responding on port $am_port"
+    else
+        info "Account Manager API: Not running (optional service)"
     fi
     
     echo ""
@@ -712,18 +905,20 @@ verify_services() {
         if curl -s --max-time 10 "https://$TAILSCALE_HOSTNAME$VIDEO_FUNNEL_PATH/healthz" | jq -e '.ok' &>/dev/null; then
             success "Video (External): https://$TAILSCALE_HOSTNAME$VIDEO_FUNNEL_PATH"
         else
-            warn "Video (External): Not accessible or Funnel not configured"
+            warn "Video (External): Not accessible"
+            issues+=("video_funnel")
         fi
         
         # Test external instagram
         if curl -s --max-time 10 "https://$TAILSCALE_HOSTNAME$INSTAGRAM_FUNNEL_PATH/health" | jq -e '.status' &>/dev/null; then
             success "Instagram (External): https://$TAILSCALE_HOSTNAME$INSTAGRAM_FUNNEL_PATH"
         else
-            warn "Instagram (External): Not accessible or Funnel not configured"
+            warn "Instagram (External): Not accessible"
+            issues+=("instagram_funnel")
         fi
     else
-        info "Tailscale hostname not configured. External access not available."
-        info "Run ./setup.sh again to configure Tailscale."
+        warn "Tailscale hostname not configured"
+        issues+=("tailscale_hostname")
     fi
     
     echo ""
@@ -733,26 +928,174 @@ verify_services() {
     if [ -f "$CONFIG_FILE" ]; then
         success "Config file: $CONFIG_FILE"
     else
-        warn "Config file: Not found (run ./setup.sh to create)"
+        warn "Config file: Not found"
+        issues+=("config_missing")
     fi
     
     if [ -n "$PINATA_JWT" ]; then
         success "Pinata IPFS: Configured"
     else
-        warn "Pinata IPFS: Not configured (videos won't upload to IPFS)"
+        warn "Pinata IPFS: Not configured"
+        issues+=("pinata_missing")
     fi
     
     echo ""
     
-    if [ "$all_ok" = true ]; then
+    # Offer to fix issues
+    if [ ${#issues[@]} -gt 0 ]; then
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}Found ${#issues[@]} issue(s) that may need attention${NC}"
+        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo ""
+        
+        offer_fixes "${issues[@]}"
+    else
         echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo -e "${GREEN}✓ All core services are running!${NC}"
         echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    else
-        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${YELLOW}⚠ Some services are not running. Check the errors above.${NC}"
-        echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     fi
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Offer Fixes for Issues
+# ═══════════════════════════════════════════════════════════════════════════════
+
+offer_fixes() {
+    local issues=("$@")
+    
+    for issue in "${issues[@]}"; do
+        case "$issue" in
+            "video_container")
+                echo -e "${BOLD}Video Transcoder container not running${NC}"
+                if ask_yes_no "  Start Video Transcoder container?"; then
+                    cd "$SCRIPT_DIR/skatehive-video-transcoder" 2>/dev/null && docker-compose up -d && success "  Started!" || error "  Failed to start"
+                    cd "$SCRIPT_DIR"
+                else
+                    info "  To fix manually: cd skatehive-video-transcoder && docker-compose up -d"
+                fi
+                echo ""
+                ;;
+                
+            "instagram_container")
+                echo -e "${BOLD}Instagram Downloader container not running${NC}"
+                if ask_yes_no "  Start Instagram Downloader container?"; then
+                    cd "$SCRIPT_DIR/skatehive-instagram-downloader/ytipfs-worker" 2>/dev/null && docker-compose up -d && success "  Started!" || error "  Failed to start"
+                    cd "$SCRIPT_DIR"
+                else
+                    info "  To fix manually: cd skatehive-instagram-downloader/ytipfs-worker && docker-compose up -d"
+                fi
+                echo ""
+                ;;
+                
+            "video_api"|"instagram_api")
+                echo -e "${BOLD}Service API not responding${NC}"
+                info "  The container may still be starting up. Wait 30 seconds and try again."
+                info "  Check logs: docker logs video-worker  OR  docker logs ytipfs-worker"
+                echo ""
+                ;;
+                
+            "instagram_cookies")
+                echo -e "${BOLD}Instagram cookies invalid/expired${NC}"
+                info "  You need to refresh your Instagram cookies."
+                echo ""
+                echo "  Steps to fix:"
+                echo "    1. Install browser extension: 'Get cookies.txt LOCALLY'"
+                echo "    2. Login to Instagram in your browser"
+                echo "    3. Export cookies using the extension"
+                echo "    4. Copy to: skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
+                echo ""
+                info "  Full guide: docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md"
+                echo ""
+                ;;
+                
+            "instagram_cookies_missing")
+                echo -e "${BOLD}Instagram cookies not configured${NC}"
+                info "  Instagram downloads will fail without valid cookies."
+                echo ""
+                echo "  Steps to configure:"
+                echo "    1. Install browser extension: 'Get cookies.txt LOCALLY'"
+                echo "    2. Login to Instagram in your browser"
+                echo "    3. Export cookies using the extension (Netscape format)"
+                echo "    4. Save to: skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
+                echo ""
+                info "  Full guide: docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md"
+                echo ""
+                ;;
+                
+            "video_funnel"|"instagram_funnel")
+                echo -e "${BOLD}Tailscale Funnel not accessible${NC}"
+                if ask_yes_no "  Configure Tailscale Funnel now?"; then
+                    setup_tailscale_funnel
+                else
+                    info "  To fix manually:"
+                    info "    tailscale funnel --bg --set-path=/video 8081"
+                    info "    tailscale funnel --bg --set-path=/instagram 6666"
+                fi
+                echo ""
+                ;;
+                
+            "tailscale_hostname")
+                echo -e "${BOLD}Tailscale hostname not configured${NC}"
+                if command -v tailscale &> /dev/null && tailscale status &> /dev/null; then
+                    local detected_hostname=$(tailscale status --json 2>/dev/null | jq -r '.Self.DNSName // empty' | sed 's/\.$//')
+                    if [ -n "$detected_hostname" ]; then
+                        info "  Detected hostname: $detected_hostname"
+                        if ask_yes_no "  Save this hostname to config?"; then
+                            if [ -f "$CONFIG_FILE" ]; then
+                                sed -i.bak "s/^TAILSCALE_HOSTNAME=.*/TAILSCALE_HOSTNAME=\"$detected_hostname\"/" "$CONFIG_FILE"
+                            else
+                                echo "TAILSCALE_HOSTNAME=\"$detected_hostname\"" >> "$CONFIG_FILE"
+                            fi
+                            success "  Hostname saved!"
+                            export TAILSCALE_HOSTNAME="$detected_hostname"
+                        fi
+                    fi
+                else
+                    info "  Tailscale is not running or not installed."
+                    info "  Install from: https://tailscale.com/download"
+                fi
+                echo ""
+                ;;
+                
+            "config_missing")
+                echo -e "${BOLD}Configuration file not found${NC}"
+                if ask_yes_no "  Run interactive configuration now?"; then
+                    configure_node
+                else
+                    info "  To fix: ./setup.sh (run full setup)"
+                fi
+                echo ""
+                ;;
+                
+            "pinata_missing")
+                echo -e "${BOLD}Pinata IPFS not configured${NC}"
+                info "  Videos and downloads won't be uploaded to IPFS."
+                echo ""
+                echo "  To configure:"
+                echo "    1. Create account at https://app.pinata.cloud"
+                echo "    2. Generate API key (JWT)"
+                echo "    3. Add to skatehive.config: PINATA_JWT=\"your-jwt-here\""
+                echo ""
+                ;;
+        esac
+    done
+}
+
+# Helper to setup Tailscale Funnel
+setup_tailscale_funnel() {
+    local tailscale_bin="tailscale"
+    if [[ "$(detect_os)" == "macos" ]]; then
+        tailscale_bin="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+    fi
+    
+    local video_port="${VIDEO_TRANSCODER_PORT:-8081}"
+    local insta_port="${INSTAGRAM_DOWNLOADER_PORT:-6666}"
+    local video_path="${VIDEO_FUNNEL_PATH:-/video}"
+    local insta_path="${INSTAGRAM_FUNNEL_PATH:-/instagram}"
+    
+    info "Setting up Tailscale Funnel..."
+    $tailscale_bin funnel --bg --set-path="$video_path" "$video_port" 2>/dev/null && success "Video funnel: $video_path -> :$video_port" || warn "Video funnel failed"
+    $tailscale_bin funnel --bg --set-path="$insta_path" "$insta_port" 2>/dev/null && success "Instagram funnel: $insta_path -> :$insta_port" || warn "Instagram funnel failed"
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
