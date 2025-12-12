@@ -38,31 +38,49 @@ echo "📦 Starting containers..."
 cd "$MONOREPO_ROOT/skatehive-video-transcoder" && docker-compose up -d
 cd "$MONOREPO_ROOT/skatehive-instagram-downloader/ytipfs-worker" && docker-compose up -d
 
+# Load configuration
+source "$MONOREPO_ROOT/load-config.sh"
+
 # Start Tailscale
-echo "🔗 Starting Tailscale..."
-open /Applications/Tailscale.app
-sleep 15
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "🔗 Starting Tailscale..."
+    open /Applications/Tailscale.app
+    sleep 15
+    TAILSCALE_BIN="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+else
+    echo "🔗 Starting Tailscale..."
+    sudo systemctl start tailscaled 2>/dev/null || true
+    sleep 5
+    TAILSCALE_BIN="tailscale"
+fi
 
 # Setup Funnel
 echo "🌐 Setting up Tailscale Funnel..."
 sleep 10
-/Applications/Tailscale.app/Contents/MacOS/Tailscale funnel --bg --set-path=/video 8081
-/Applications/Tailscale.app/Contents/MacOS/Tailscale funnel --bg --set-path=/instagram 6666
+$TAILSCALE_BIN funnel --bg --set-path="$VIDEO_FUNNEL_PATH" "$VIDEO_TRANSCODER_PORT"
+$TAILSCALE_BIN funnel --bg --set-path="$INSTAGRAM_FUNNEL_PATH" "$INSTAGRAM_DOWNLOADER_PORT"
 
 echo "⏳ Waiting for services to stabilize..."
 sleep 30
 
 # Test services
 echo "🧪 Testing services..."
-echo "Video Local: $(curl -s http://localhost:8081/healthz | jq -r .service || echo 'FAILED')"
-echo "Instagram Local: $(curl -s http://localhost:6666/health | jq -r .status || echo 'FAILED')"
+echo "Video Local: $(curl -s $VIDEO_LOCAL_URL/healthz | jq -r .service || echo 'FAILED')"
+echo "Instagram Local: $(curl -s $INSTAGRAM_LOCAL_URL/health | jq -r .status || echo 'FAILED')"
 
 sleep 10
 
-echo "Video External: $(curl -s https://minivlad.tail9656d3.ts.net/video/healthz | jq -r .service || echo 'FAILED')"
-echo "Instagram External: $(curl -s https://minivlad.tail9656d3.ts.net/instagram/health | jq -r .status || echo 'FAILED')"
+if [ -n "$VIDEO_EXTERNAL_URL" ]; then
+    echo "Video External: $(curl -s $VIDEO_EXTERNAL_URL/healthz | jq -r .service || echo 'FAILED')"
+    echo "Instagram External: $(curl -s $INSTAGRAM_EXTERNAL_URL/health | jq -r .status || echo 'FAILED')"
+fi
 
 echo "🎉 Emergency recovery completed!"
-echo "🌐 Your Mac Mini should now be accessible at:"
-echo "   Video: https://minivlad.tail9656d3.ts.net/video/"
-echo "   Instagram: https://minivlad.tail9656d3.ts.net/instagram/"
+echo "🌐 Your node ($NODE_NAME) should now be accessible at:"
+if [ -n "$VIDEO_EXTERNAL_URL" ]; then
+    echo "   Video: $VIDEO_EXTERNAL_URL/"
+    echo "   Instagram: $INSTAGRAM_EXTERNAL_URL/"
+else
+    echo "   Video: $VIDEO_LOCAL_URL/"
+    echo "   Instagram: $INSTAGRAM_LOCAL_URL/"
+fi

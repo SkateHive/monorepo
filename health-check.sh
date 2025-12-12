@@ -7,9 +7,13 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
 
+# Load configuration
+source "$MONOREPO_ROOT/load-config.sh"
+
 echo "🏥 SkateHive Services Health Check"
 echo "=================================="
-echo "📁 Monorepo root: $MONOREPO_ROOT"
+echo "📁 Node: $NODE_NAME ($NODE_ROLE)"
+echo "📁 Monorepo: $MONOREPO_ROOT"
 echo ""
 
 # Colors for output
@@ -21,11 +25,12 @@ NC='\033[0m' # No Color
 
 # Tailscale info
 TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "N/A")
-TAILSCALE_URL="${TAILSCALE_HOSTNAME:-$(hostname).tail$(tailscale status --json 2>/dev/null | grep -o '"DomainName":"[^"]*' | cut -d'"' -f4 | sed 's/.*\.//')}"
 
 echo -e "${BLUE}📡 Tailscale Status:${NC}"
 echo "   IP: $TAILSCALE_IP"
-echo "   URL: $TAILSCALE_URL"
+if [ -n "$TAILSCALE_HOSTNAME" ]; then
+    echo "   Hostname: $TAILSCALE_HOSTNAME"
+fi
 echo ""
 
 # Function to test endpoint

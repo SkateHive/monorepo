@@ -1,36 +1,43 @@
 #!/bin/bash
-# Test script for Mac Mini services accessibility via Tailscale
+# Test script for SkateHive services accessibility
 # Usage: ./test-macmini-services.sh
 
-echo "🧪 Mac Mini Services Test Script"
-echo "================================"
+# Load configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/load-config.sh"
 
-# Test Instagram Downloader (port 6666)
-echo "📥 Testing Instagram Downloader..."
-echo "URL: https://macmini.tail83ea3e.ts.net:6666/health"
-curl -s --connect-timeout 10 https://macmini.tail83ea3e.ts.net:6666/health | jq . || echo "❌ Instagram service not accessible"
+echo "🧪 SkateHive Services Test Script"
+echo "=================================="
+echo "Node: $NODE_NAME ($NODE_ROLE)"
+echo ""
 
-echo
-
-# Test Video Transcoder (port 8081)
-echo "🎬 Testing Video Transcoder..."
-echo "URL: https://macmini.tail83ea3e.ts.net:8081/healthz"
-curl -s --connect-timeout 10 https://macmini.tail83ea3e.ts.net:8081/healthz | jq . || echo "❌ Video transcoder not accessible"
-
-echo
-
-# Test local services (should work)
+# Test local services first
 echo "🏠 Testing Local Services..."
-echo "Instagram (local): http://localhost:6666/health"
-curl -s http://localhost:6666/health | jq -r '"Status: " + .status + " | Version: " + .version' || echo "❌ Local Instagram service down"
+echo "Video (local): $VIDEO_LOCAL_URL/healthz"
+curl -s --connect-timeout 5 "$VIDEO_LOCAL_URL/healthz" | jq -r '"Status: " + (.ok|tostring) + " | Service: " + .service' || echo "❌ Local video service down"
 
-echo "Video (local): http://localhost:8081/healthz"
-curl -s http://localhost:8081/healthz | jq -r '"Status: " + (.ok|tostring) + " | Service: " + .service' || echo "❌ Local video service down"
+echo "Instagram (local): $INSTAGRAM_LOCAL_URL/health"
+curl -s --connect-timeout 5 "$INSTAGRAM_LOCAL_URL/health" | jq -r '"Status: " + .status + " | Version: " + .version' || echo "❌ Local Instagram service down"
 
-echo
+echo ""
+
+# Test external services via Tailscale
+if [ -n "$VIDEO_EXTERNAL_URL" ]; then
+    echo "🌐 Testing External Services (Tailscale)..."
+    
+    echo "Video (external): $VIDEO_EXTERNAL_URL/healthz"
+    curl -s --connect-timeout 10 "$VIDEO_EXTERNAL_URL/healthz" | jq . || echo "❌ Video transcoder not accessible"
+    
+    echo "Instagram (external): $INSTAGRAM_EXTERNAL_URL/health"
+    curl -s --connect-timeout 10 "$INSTAGRAM_EXTERNAL_URL/health" | jq . || echo "❌ Instagram service not accessible"
+else
+    echo "⚠️ Tailscale not configured. Run ./setup.sh to configure."
+fi
+
+echo ""
 echo "✅ Test complete!"
-echo
+echo ""
 echo "💡 If Tailscale services fail:"
 echo "   1. Make sure Tailscale app is running and authenticated"
-echo "   2. Check if 'macmini' is the correct device name in your tailnet"
-echo "   3. Verify ports 6666 and 8081 are accessible in macOS firewall"
+echo "   2. Run ./setup.sh to configure your node"
+echo "   3. Check firewall settings for ports $VIDEO_TRANSCODER_PORT and $INSTAGRAM_DOWNLOADER_PORT"

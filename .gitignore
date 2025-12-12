@@ -3,6 +3,9 @@
 logs/
 *.log.*
 
+# Local node configuration (contains secrets)
+skatehive.config
+
 # OS Files
 .DS_Store
 .DS_Store?

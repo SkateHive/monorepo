@@ -1,15 +1,19 @@
 #!/bin/bash
-# SkateHive Mac Mini Power Recovery & Health Check Script
+# SkateHive Power Recovery & Health Check Script
 # This script ensures all services are running after power outages/reboots
 
 # Auto-detect monorepo root (works from any location)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
 
+# Load configuration
+source "$MONOREPO_ROOT/load-config.sh"
+
 LOG_FILE="$MONOREPO_ROOT/power-recovery.log"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
 echo "[$TIMESTAMP] 🔋 SkateHive Power Recovery Check Started" | tee -a "$LOG_FILE"
+echo "[$TIMESTAMP] 📁 Node: $NODE_NAME ($NODE_ROLE)" | tee -a "$LOG_FILE"
 echo "[$TIMESTAMP] 📁 Monorepo root: $MONOREPO_ROOT" | tee -a "$LOG_FILE"
 
 # Function to log with timestamp
@@ -81,8 +85,15 @@ check_containers() {
 check_tailscale() {
     log "🔗 Checking Tailscale connectivity..."
     
+    # Determine Tailscale binary path
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        TAILSCALE_BIN="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+    else
+        TAILSCALE_BIN="tailscale"
+    fi
+    
     # Check if Tailscale is running
-    if pgrep -f "Tailscale" >/dev/null; then
+    if pgrep -f "Tailscale\|tailscaled" >/dev/null; then
         log "✅ Tailscale is running"
         
         # Wait a bit for network to be ready
@@ -90,20 +101,24 @@ check_tailscale() {
         
         # Check and re-enable Funnel if needed
         log "🌐 Checking Tailscale Funnel status..."
-        funnel_status=$(/Applications/Tailscale.app/Contents/MacOS/Tailscale funnel status 2>&1)
+        funnel_status=$($TAILSCALE_BIN funnel status 2>&1)
         
-        if echo "$funnel_status" | grep -q "minivlad.tail9656d3.ts.net"; then
+        if [ -n "$TAILSCALE_HOSTNAME" ] && echo "$funnel_status" | grep -q "$TAILSCALE_HOSTNAME"; then
             log "✅ Tailscale Funnel is configured"
         else
             log "⚠️ Tailscale Funnel not configured, setting up..."
-            /Applications/Tailscale.app/Contents/MacOS/Tailscale funnel --bg --set-path=/video 8081
-            /Applications/Tailscale.app/Contents/MacOS/Tailscale funnel --bg --set-path=/instagram 6666
+            $TAILSCALE_BIN funnel --bg --set-path="$VIDEO_FUNNEL_PATH" "$VIDEO_TRANSCODER_PORT"
+            $TAILSCALE_BIN funnel --bg --set-path="$INSTAGRAM_FUNNEL_PATH" "$INSTAGRAM_DOWNLOADER_PORT"
             log "✅ Tailscale Funnel configured"
         fi
     else
         log "❌ Tailscale is not running"
         log "🔄 Attempting to start Tailscale..."
-        open /Applications/Tailscale.app
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            open /Applications/Tailscale.app
+        else
+            sudo systemctl start tailscaled 2>/dev/null || true
+        fi
         sleep 15
     fi
 }
@@ -129,23 +144,25 @@ if wait_for_docker; then
     sleep 20
     
     # Test external services
-    log "🧪 Testing external service accessibility..."
-    
-    if check_service "Mac Mini Video (External)" "https://minivlad.tail9656d3.ts.net/video/healthz" 15; then
-        if check_service "Mac Mini Instagram (External)" "https://minivlad.tail9656d3.ts.net/instagram/health" 15; then
-            log "🎉 All services are running and accessible externally!"
-            log "🌟 SkateHive Mac Mini is ready to serve as primary server"
+    if [ -n "$VIDEO_EXTERNAL_URL" ]; then
+        log "🧪 Testing external service accessibility..."
+        
+        if check_service "$NODE_NAME Video (External)" "$VIDEO_EXTERNAL_URL/healthz" 15; then
+            if check_service "$NODE_NAME Instagram (External)" "$INSTAGRAM_EXTERNAL_URL/health" 15; then
+                log "🎉 All services are running and accessible externally!"
+                log "🌟 SkateHive $NODE_NAME is ready to serve as $NODE_ROLE server"
+            else
+                log "⚠️ Instagram service may need more time to start"
+            fi
         else
-            log "⚠️ Instagram service may need more time to start"
+            log "⚠️ Video service may need more time to start"
         fi
-    else
-        log "⚠️ Video service may need more time to start"
     fi
     
     # Test local services as backup
     log "🏠 Testing local service accessibility..."
-    check_service "Video (Local)" "http://localhost:8081/healthz" 5
-    check_service "Instagram (Local)" "http://localhost:6666/health" 5
+    check_service "Video (Local)" "$VIDEO_LOCAL_URL/healthz" 5
+    check_service "Instagram (Local)" "$INSTAGRAM_LOCAL_URL/health" 5
     
 else
     log "❌ Docker failed to start - manual intervention required"
