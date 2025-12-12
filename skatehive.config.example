@@ -16,13 +16,15 @@ NODE_ROLE="primary"
 # =============================================================================
 # Your Tailscale hostname (e.g., "minivlad.tail9656d3.ts.net")
 # Run: tailscale status --json | jq -r '.Self.DNSName' | sed 's/\.$//'
+# Or check: https://login.tailscale.com/admin/machines
 TAILSCALE_HOSTNAME=""
 
 # =============================================================================
-# SERVICE PORTS
+# SERVICE PORTS (external ports exposed by Docker)
 # =============================================================================
 VIDEO_TRANSCODER_PORT=8081
 INSTAGRAM_DOWNLOADER_PORT=6666
+ACCOUNT_MANAGER_PORT=3001
 
 # =============================================================================
 # TAILSCALE FUNNEL PATHS
