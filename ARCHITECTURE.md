@@ -65,17 +65,17 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
 - **Status:** ✅ Active
 - **Services:**
   - Video Transcoder (port 8081)
-  - Instagram Downloader (port 6666)
+  - Instagram Downloader (port 8000, served via `/instagram` on 443)
   - Account Manager (port 3001)
   - VSC Node (port 8080)
 
 #### 🥧 Raspberry Pi 5 (Secondary/Backup)
 - **Tailscale Name:** `raspberrypi.tail83ea3e.ts.net`
 - **Role:** Backup services, development
-- **Status:** ⚠️ Currently offline
-- **Services (when active):**
-  - Video Transcoder
-  - Instagram Downloader
+- **Status:** ✅ Active
+- **Services:**
+  - Video Transcoder (port 8081)
+  - Instagram Downloader (port 8000, served via `/instagram` on 443)
 
 ---
 
@@ -112,7 +112,7 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
 │  │ Video Transcoder │  │ Instagram        │  │ Account        │ │
 │  │ (Node.js/TS)    │  │ Downloader       │  │ Manager        │ │
 │  │                  │  │ (FastAPI/Python) │  │ (Node.js/TS)   │ │
-│  │ Port: 8081:8080  │  │ Port: 6666:8000  │  │ Port: 3001:3000│ │
+│  │ Port: 8081:8080  │  │ Port: 8000:8000  │  │ Port: 3001:3000│ │
 │  └──────────────────┘  └──────────────────┘  └────────────────┘ │
 │                                                                   │
 └───────────────────────────┬──────────────────────────────────────┘
@@ -197,12 +197,12 @@ Internet
    │      │
    │      ├─► minivlad.tail9656d3.ts.net
    │      │     ├─► /video/* → localhost:8081
-   │      │     ├─► /instagram/* → localhost:6666
+   │      │     ├─► /instagram/* → localhost:8000
    │      │     └─► /healthz → localhost:3001
    │      │
    │      └─► raspberrypi.tail83ea3e.ts.net
    │            ├─► /video/* → localhost:8081
-   │            └─► /instagram/* → localhost:6666
+   │            └─► /instagram/* → localhost:8000
    │
    └─► Private Mesh Network (100.x.x.x)
           │
@@ -230,7 +230,7 @@ Internet
 | Service | External Port | Internal Port | Container Name | Protocol |
 |---------|--------------|---------------|----------------|----------|
 | Video Transcoder | 8081 | 8080 | video-worker | HTTP |
-| Instagram Downloader | 6666 | 8000 | ytipfs-worker | HTTP |
+| Instagram Downloader | 443 (`/instagram`) | 8000 | ytipfs-worker | HTTP |
 | Account Manager | 3001 | 3000 | skatehive-account-manager | HTTP |
 | VSC Node | 8080 | 8080 | (direct) | HTTP |
 
@@ -238,12 +238,12 @@ Internet
 
 | Service | External Port | Internal Port | Status |
 |---------|--------------|---------------|--------|
-| Video Transcoder | 8081 | 8080 | ⚠️ Offline |
-| Instagram Downloader | 6666 | 8000 | ⚠️ Offline |
+| Video Transcoder | 8081 | 8080 | ✅ Active |
+| Instagram Downloader | 443 (`/instagram`) | 8000 | ✅ Active |
 
 ### Port Selection Rationale:
 - **8081 (Video):** Avoids conflict with VSC node on 8080
-- **6666 (Instagram):** Memorable "devil's port" for external content
+- **8000 (Instagram internal):** Standard FastAPI default, exposed via HTTPS `/instagram`
 - **3001 (Account):** Avoids conflict with Next.js dev default (3000)
 
 ---

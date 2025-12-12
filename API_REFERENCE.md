@@ -28,7 +28,7 @@ SkateHive provides multiple REST APIs for different services. All APIs return JS
 | Service | Production URL | Dev URL | Port |
 |---------|---------------|----------|------|
 | Video Transcoder | `https://minivlad.tail9656d3.ts.net/video` | `http://localhost:8081` | 8081:8080 |
-| Instagram Downloader | `https://minivlad.tail9656d3.ts.net/instagram` | `http://localhost:6666` | 6666:8000 |
+| Instagram Downloader | `https://raspberrypi.tail83ea3e.ts.net/instagram` | `http://localhost:8000` | 443(`/instagram`):8000 |
 | Account Manager | `https://minivlad.tail9656d3.ts.net` | `http://localhost:3001` | 3001:3000 |
 | Leaderboard API | `https://your-domain.vercel.app` | `http://localhost:3000` | 3000 |
 
@@ -276,7 +276,7 @@ curl https://minivlad.tail9656d3.ts.net/video/job/abc123def456
 ## 📸 Instagram Downloader API
 
 **Base URL (Production):** `https://minivlad.tail9656d3.ts.net/instagram`  
-**Base URL (Development):** `http://localhost:6666`
+**Base URL (Development):** `http://localhost:8000`
 
 ---
 

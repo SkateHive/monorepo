@@ -227,7 +227,7 @@ chmod 600 cookies/cookies.txt
 docker-compose up -d
 
 # Verify
-curl http://localhost:6666/cookies/status
+curl http://localhost:8000/cookies/status
 ```
 
 ---
@@ -316,7 +316,7 @@ cp new-cookies.txt cookies/cookies.txt
 docker-compose restart
 
 # Test
-curl http://localhost:6666/cookies/status
+curl http://localhost:8000/cookies/status
 ```
 
 #### 3. Deploy to Production

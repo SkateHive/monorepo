@@ -164,9 +164,9 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 - `GET /cookies/status` - Cookie expiration status
 
 **Configuration:**
-- Port: `6666`
+- Port: `8000` (local)
 - Cookie File: `data/instagram_cookies.txt` (Netscape format)
-- External URL: `https://minivlad.tail9656d3.ts.net/instagram/download`
+- External URL: `https://raspberrypi.tail83ea3e.ts.net/instagram/download` (via Tailscale Funnel on 443)
 - **Blockchain Integration**: Hive blockchain posting, Ethereum/Farcaster protocols
 - **Content Management**: Video uploads, blog posts, community interactions
 - **Skate Mapping**: Interactive maps for skate spot sharing
@@ -183,7 +183,7 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 
 ## 🔗 Shared Infrastructure
 
-The **webapp (skatehive3.0)** and **mobile app (mobileapp)** share common backend infrastructure:
+The **webapp (skatehive3.0)** consumes shared backend services:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

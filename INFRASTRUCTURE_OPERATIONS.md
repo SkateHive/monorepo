@@ -102,7 +102,7 @@ docker ps
 # CONTAINER ID   IMAGE                          STATUS                      PORTS
 # abc123         skatehive-account-manager      Up 2 days (healthy)        0.0.0.0:3001->3000/tcp
 # def456         video-worker                   Up 2 days (unhealthy)      0.0.0.0:8081->8080/tcp
-# ghi789         ytipfs-worker                  Up 2 days (healthy)        0.0.0.0:6666->8000/tcp
+# ghi789         ytipfs-worker                  Up 2 days (healthy)        0.0.0.0:8000->8000/tcp
 ```
 
 #### Service Health Endpoints:
@@ -199,7 +199,7 @@ curl https://minivlad.tail9656d3.ts.net/video/healthz
 - Valid Instagram cookies (see [INSTAGRAM_COOKIE_MANAGEMENT.md](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md))
 - yt-dlp installed in image
 - IPFS access
-- Port 6666 available
+- Port 8000 available
 
 #### Deployment Steps:
 
@@ -484,41 +484,22 @@ curl https://minivlad.tail9656d3.ts.net/api/status
 #### Enable Funnel on Mac Mini M4:
 
 ```bash
-# Allow HTTPS traffic through Funnel
-tailscale funnel 8081  # Video Transcoder
-tailscale funnel 6666  # Instagram Downloader
-tailscale funnel 3001  # Account Manager
+# Serve local services on the tailnet
+sudo tailscale serve --bg --set-path /video http://localhost:8081
+sudo tailscale serve --bg --set-path /instagram http://localhost:8000
+sudo tailscale serve --bg --set-path /healthz http://localhost:3001
 
-# Verify Funnel status
+# Expose over the internet on 443
+sudo tailscale funnel --bg 443
+
+# Verify status
+tailscale serve status
 tailscale funnel status
 
 # Expected output:
 # https://minivlad.tail9656d3.ts.net (Funnel on)
-#   |-- / proxy http://127.0.0.1:8081
-```
-
----
-
-#### Update Funnel Configuration:
-
-Edit: `/etc/tailscale/funnel.json` (if using persistent config)
-
-```json
-{
-  "https://minivlad.tail9656d3.ts.net": {
-    "handlers": {
-      "/video": {
-        "proxy": "http://127.0.0.1:8081"
-      },
-      "/instagram": {
-        "proxy": "http://127.0.0.1:6666"
-      },
-      "/": {
-        "proxy": "http://127.0.0.1:3001"
-      }
-    }
-  }
-}
+#   |-- /video -> http://localhost:8081
+#   |-- /instagram -> http://localhost:8000
 ```
 
 ---
@@ -825,7 +806,7 @@ docker info
 
 # 2. Check port conflicts
 sudo lsof -i :8081
-sudo lsof -i :6666
+sudo lsof -i :8000
 sudo lsof -i :3001
 
 # 3. Check volume mounts

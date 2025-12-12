@@ -595,10 +595,11 @@ tailscale status
 
 #### Funnel Not Enabled:
 ```bash
-# Enable Funnel for service ports
-tailscale funnel 8081  # Video
-tailscale funnel 6666  # Instagram
-tailscale funnel 3001  # Account Manager
+# Serve and funnel service paths
+sudo tailscale serve --bg --set-path /video http://localhost:8081
+sudo tailscale serve --bg --set-path /instagram http://localhost:8000
+sudo tailscale serve --bg --set-path /healthz http://localhost:3001
+sudo tailscale funnel --bg 443
 
 # Verify
 tailscale funnel status

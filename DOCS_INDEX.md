@@ -23,9 +23,8 @@
 - [Emergency Procedures](./INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
 
 ### 📊 Status & Reports
-- [Documentation Cleanup Summary](./DOCS_CLEANUP_SUMMARY.md) - Recent documentation work
-- [Documentation Action Plan](./DOCUMENTATION_ACTION_PLAN.md) - Ongoing improvements
 - [Service Status](https://minivlad.tail9656d3.ts.net/api/status) - Live service health
+- Archived docs: `./docs/archive/`
 
 ---
 
@@ -149,40 +148,6 @@ curl https://minivlad.tail9656d3.ts.net/instagram/health
 
 ---
 
-#### 👤 [account-manager/README.md](./account-manager/README.md)
-**What:** Hive blockchain account management  
-**Features:**
-- Account creation with RC delegation
-- Key generation and encryption
-- Emergency recovery system
-- Authority management
-
-**Quick Start:**
-```bash
-cd account-manager
-./deploy.sh
-curl https://minivlad.tail9656d3.ts.net/healthz
-```
-
----
-
-#### 🏆 [leaderboard-api/README.md](./leaderboard-api/README.md)
-**What:** Content ranking and service monitoring  
-**Features:**
-- Multi-service health aggregation
-- Cookie expiration monitoring
-- Real-time status reporting
-- Next.js 15 API routes
-
-**Quick Start:**
-```bash
-cd leaderboard-api
-pnpm install && pnpm dev
-curl http://localhost:3000/api/status
-```
-
----
-
 #### 📊 [skatehive-dashboard/README.md](./skatehive-dashboard/README.md)
 **What:** Terminal-based monitoring dashboard  
 **Features:**
@@ -239,29 +204,7 @@ python3 dashboard.py
 
 ### Operations Documentation
 
-#### 📋 [DOCUMENTATION_ACTION_PLAN.md](./DOCUMENTATION_ACTION_PLAN.md)
-**What:** Documentation improvement roadmap  
-**Status:** Living document tracking doc improvements  
-**Last Updated:** December 5, 2025
-
----
-
-#### ✅ [DOCS_CLEANUP_SUMMARY.md](./DOCS_CLEANUP_SUMMARY.md)
-**What:** Summary of Phase 1 documentation work  
-**Includes:**
-- Documentation validation results
-- Service testing outcomes
-- Files updated and archived
-- Code enhancements
-- Current documentation health score
-
----
-
-#### 📊 [DOCS_VALIDATION_REPORT.md](./DOCS_VALIDATION_REPORT.md)
-**What:** Detailed documentation audit report  
-**When to use:** Understanding doc coverage and gaps
-
----
+- See `docs/archive/` for retired documentation cleanup/validation reports.
 
 ### Archived Documentation
 
@@ -304,8 +247,6 @@ Located in [docs/archive/](./docs/archive/)
 
 - **Video Transcoder** → [Service README](./skatehive-video-transcoder/README.md) | [API](./API_REFERENCE.md#video-transcoder-api) | [Troubleshooting](./TROUBLESHOOTING_GUIDE.md#video-transcoder-issues)
 - **Instagram Downloader** → [Service README](./skatehive-instagram-downloader/README.md) | [API](./API_REFERENCE.md#instagram-downloader-api) | [Cookie Management](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
-- **Account Manager** → [Service README](./account-manager/README.md) | [API](./API_REFERENCE.md#account-manager-api) | [Troubleshooting](./TROUBLESHOOTING_GUIDE.md#account-manager-issues)
-- **Leaderboard API** → [Service README](./leaderboard-api/README.md) | [API](./API_REFERENCE.md#leaderboard-api)
 - **Dashboard** → [Service README](./skatehive-dashboard/README.md)
 - **Main App** → [Service README](./skatehive3.0/README.md) | [Agents](./skatehive3.0/AGENTS.md) | [Rules](./skatehive3.0/RULES.md)
 
@@ -419,8 +360,7 @@ Located in [docs/archive/](./docs/archive/)
 ### Documentation Issues
 If documentation is unclear, incorrect, or missing:
 1. Check [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md) first
-2. Review [Documentation Action Plan](./DOCUMENTATION_ACTION_PLAN.md)
-3. Search archived docs in [docs/archive/](./docs/archive/)
+2. Search archived docs in [docs/archive/](./docs/archive/)
 
 ### Service Issues
 1. Check [Quick Diagnosis](./TROUBLESHOOTING_GUIDE.md#quick-diagnosis)
