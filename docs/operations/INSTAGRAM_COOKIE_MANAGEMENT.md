@@ -169,19 +169,22 @@ scp cookies.txt user@minivlad.tail83ea3e.ts.net:/path/to/skatehive-monorepo/skat
 ssh user@minivlad.tail83ea3e.ts.net "chmod 600 /path/to/cookies/cookies.txt"
 ```
 
-**Option B: Setup Script** (automated)
+**Option B: Manual Installation**
 ```bash
-# Use provided setup script
-cd /path/to/skatehive-monorepo
-./setup-instagram-cookies.sh /path/to/new/cookies.txt
-```
+# Backup old cookies
+cp skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt \
+   skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt.backup
 
-The script will:
-- ✅ Validate cookie format
-- ✅ Backup existing cookies
-- ✅ Install new cookies
-- ✅ Restart Docker container
-- ✅ Verify installation
+# Install new cookies
+cp /path/to/new/cookies.txt \
+   skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt
+
+# Restart service
+docker restart ytipfs-worker
+
+# Verify
+curl http://localhost:6666/cookies/status
+```
 
 #### Step 3: Restart Service
 ```bash
@@ -323,7 +326,12 @@ curl http://localhost:6666/cookies/status
 ```bash
 # Use automated script
 cd /path/to/skatehive-monorepo
-./setup-instagram-cookies.sh new-cookies.txt
+# Manual installation
+cp new-cookies.txt skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt
+docker restart ytipfs-worker
+
+# Verify
+./skatehive-instagram-downloader/cookie-health-check.sh
 ```
 
 #### 4. Verify Deployment
@@ -471,64 +479,37 @@ ls -t cookies/cookies.txt.backup-* | tail -n +4 | xargs rm -f
 
 ## 🤖 Automation
 
-### Expiration Monitoring Script
+### Automated Monitoring (Already Configured)
 
-Create: `skatehive-dashboard/monitors/cookie_monitor.py`
+The `cookie-health-check.sh` script runs automatically every 6 hours via launchd.
 
-```python
-#!/usr/bin/env python3
-import requests
-import datetime
+**Features:**
+- ✅ Parses cookie file for expiration dates
+- ✅ Tests actual service connectivity
+- ✅ Sends Discord alerts when cookies expire soon
+- ✅ Detailed logging to `~/cookie-monitor.log`
 
-ENDPOINTS = [
-    "https://minivlad.tail83ea3e.ts.net/instagram/cookies/status",
-    "https://vladsberry.tail83ea3e.ts.net/instagram/cookies/status"
-]
-
-WARNING_DAYS = 7
-
-for endpoint in ENDPOINTS:
-    try:
-        response = requests.get(endpoint, timeout=5)
-        data = response.json()
-        
-        if not data.get("cookies_valid"):
-            print(f"🚨 CRITICAL: {endpoint} - Cookies INVALID")
-        elif data.get("days_until_expiry", 999) < WARNING_DAYS:
-            days = data.get("days_until_expiry")
-            print(f"⚠️  WARNING: {endpoint} - Expires in {days} days")
-        else:
-            days = data.get("days_until_expiry")
-            print(f"✅ OK: {endpoint} - {days} days remaining")
-    except Exception as e:
-        print(f"❌ ERROR: {endpoint} - {e}")
-```
-
-### Automated Refresh (with approval)
-
+**Setup (one-time):**
 ```bash
-#!/bin/bash
-# cookie-refresh-reminder.sh
+cd /path/to/skatehive-monorepo
 
-DAYS_UNTIL_EXPIRY=$(curl -s https://minivlad.tail83ea3e.ts.net/instagram/cookies/status | jq -r '.days_until_expiry')
+# Install launchd job
+cp com.skatehive.cookie-monitor.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.skatehive.cookie-monitor.plist
 
-if [ "$DAYS_UNTIL_EXPIRY" -lt 7 ]; then
-    echo "⚠️ Instagram cookies expire in $DAYS_UNTIL_EXPIRY days"
-    echo "📝 Action required: Refresh cookies using INSTAGRAM_COOKIE_MANAGEMENT.md"
-    
-    # Send notification (Slack, email, etc.)
-    # curl -X POST https://hooks.slack.com/... -d "..."
-fi
+# Verify it's loaded
+launchctl list | grep skatehive
 ```
 
-### Cron Schedule:
-```cron
-# Check cookie expiration daily at 9 AM
-0 9 * * * /path/to/cookie-refresh-reminder.sh
-
-# Run monitoring script every 6 hours
-0 */6 * * * /path/to/cookie_monitor.py
+**Manual run:**
+```bash
+./skatehive-instagram-downloader/cookie-health-check.sh
 ```
+
+**Configure Discord alerts (optional):**
+Add `DISCORD_WEBHOOK_URL` to your `skatehive.config` file to receive alerts.
+
+**See:** `skatehive-instagram-downloader/com.skatehive.cookie-monitor.plist` for launchd config.
 
 ---
 

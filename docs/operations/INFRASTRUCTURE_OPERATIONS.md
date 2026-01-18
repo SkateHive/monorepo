@@ -735,8 +735,9 @@ docker-compose up -d <service_name>
 curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 # If "cookies_valid": false
 
-# 2. Quick refresh using setup script
-./setup-instagram-cookies.sh /path/to/new/cookies.txt
+# 2. Quick refresh using manual installation
+cp /path/to/new/cookies.txt skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt
+docker restart ytipfs-worker
 
 # 3. If no new cookies available, service degradation:
 # - Downloads will fail
@@ -858,7 +859,12 @@ cd skatehive-dashboard && python3 dashboard.py
 ./pre-deploy-backup.sh
 
 # Cookie Refresh
-./setup-instagram-cookies.sh /path/to/cookies.txt
+# Manual cookie installation
+cp /path/to/cookies.txt skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt
+docker restart ytipfs-worker
+
+# Or use the health check for detailed status
+./skatehive-instagram-downloader/cookie-health-check.sh
 ```
 
 ---

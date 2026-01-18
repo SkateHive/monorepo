@@ -416,7 +416,7 @@ When adding or updating documentation:
 
 ### Tools & Scripts
 - [Health Check Script](./health-check.sh)
-- [Cookie Setup Script](./setup-instagram-cookies.sh)
+- [Instagram Cookie Monitor](./skatehive-instagram-downloader/cookie-health-check.sh) (automated via launchd)
 - [Emergency Recovery Script](./emergency-recovery.sh)
 - [Dashboard Runner](./skatehive-dashboard/run-dashboard.sh)
 

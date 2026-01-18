@@ -65,26 +65,17 @@ echo -e "${BLUE}📱 Instagram Downloader Service (Port $INSTAGRAM_DOWNLOADER_PO
 test_endpoint "http://localhost:$INSTAGRAM_DOWNLOADER_PORT/healthz" "Local Health" "status"
 test_endpoint "http://$TAILSCALE_URL:$INSTAGRAM_DOWNLOADER_PORT/healthz" "Tailscale Health" "status"
 
-echo -e "${BLUE}🍪 Instagram Cookie Authentication:${NC}"
-echo -e "${YELLOW}Local Cookie Status:${NC}"
+echo -e "${BLUE}🍪 Instagram Cookie Status:${NC}"
 cookie_response=$(curl -s --max-time 5 "http://localhost:$INSTAGRAM_DOWNLOADER_PORT/cookies/status" 2>/dev/null)
-curl_exit_code=$?
-
-if [ $curl_exit_code -eq 0 ]; then
-    cookies_enabled=$(echo "$cookie_response" | grep -o '"cookies_enabled":[^,]*' | cut -d':' -f2)
-    cookies_exist=$(echo "$cookie_response" | grep -o '"cookies_exist":[^,]*' | cut -d':' -f2)
-    cookies_valid=$(echo "$cookie_response" | grep -o '"cookies_valid":[^,]*' | cut -d':' -f2)
+if [ $? -eq 0 ]; then
+    echo "$cookie_response" | jq '.'
     
-    echo "   Enabled: $cookies_enabled"
-    echo "   File exists: $cookies_exist"
-    echo "   Valid: $cookies_valid"
-    
+    cookies_valid=$(echo "$cookie_response" | jq -r '.cookies_valid // false')
     if [ "$cookies_valid" = "true" ]; then
-        echo -e "   ${GREEN}✅ Instagram authentication active${NC}"
-    elif [ "$cookies_exist" = "true" ]; then
-        echo -e "   ${YELLOW}⚠️ Cookies exist but may be invalid${NC}"
+        echo -e "   ${GREEN}✅ Cookies valid and working${NC}"
     else
-        echo -e "   ${YELLOW}⚠️ No cookies configured (using fallback mode)${NC}"
+        echo -e "   ${YELLOW}⚠️ Cookies may be invalid or expired${NC}"
+        echo -e "   ${YELLOW}Run: skatehive-instagram-downloader/cookie-health-check.sh for detailed analysis${NC}"
     fi
 else
     echo -e "   ${RED}❌ Could not check cookie status${NC}"
