@@ -22,7 +22,7 @@
 This guide covers day-to-day operations for the SkateHive infrastructure, including service management, deployments, and emergency procedures.
 
 ### Infrastructure Components:
-- **Primary Host:** Mac Mini M4 (minivlad.tail9656d3.ts.net)
+- **Primary Host:** Mac Mini M4 (minivlad.tail83ea3e.ts.net)
 - **Secondary Host:** Raspberry Pi 5 (vladsberry.tail83ea3e.ts.net)
 - **Container Runtime:** Docker with Docker Compose
 - **Network:** Tailscale mesh with Funnel for public access
@@ -102,22 +102,22 @@ docker ps
 # CONTAINER ID   IMAGE                          STATUS                      PORTS
 # abc123         skatehive-account-manager      Up 2 days (healthy)        0.0.0.0:3001->3000/tcp
 # def456         video-worker                   Up 2 days (unhealthy)      0.0.0.0:8081->8080/tcp
-# ghi789         ytipfs-worker                  Up 2 days (healthy)        0.0.0.0:8000->8000/tcp
+# ghi789         ytipfs-worker                  Up 2 days (healthy)        0.0.0.0:6666->8000/tcp
 ```
 
 #### Service Health Endpoints:
 ```bash
 # Video Transcoder
-curl https://minivlad.tail9656d3.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
 
 # Instagram Downloader
-curl https://minivlad.tail9656d3.ts.net/instagram/health
+curl https://minivlad.tail83ea3e.ts.net/instagram/healthz
 
 # Account Manager
-curl https://minivlad.tail9656d3.ts.net/healthz
+curl https://minivlad.tail83ea3e.ts.net/healthz
 
 # All services via Status API
-curl https://minivlad.tail9656d3.ts.net/api/status | jq
+curl https://api.skatehive.app/api/status | jq
 ```
 
 ---
@@ -170,7 +170,7 @@ docker-compose up -d
 
 # 5. Verify deployment
 sleep 3
-curl https://minivlad.tail9656d3.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
 
 # 6. Check logs for errors
 docker logs video-worker --tail=50
@@ -188,7 +188,7 @@ docker run -d \
   video-transcoder:backup-YYYYMMDD
 
 # Verify
-curl https://minivlad.tail9656d3.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
 ```
 
 ---
@@ -199,7 +199,7 @@ curl https://minivlad.tail9656d3.ts.net/video/healthz
 - Valid Instagram cookies (see [INSTAGRAM_COOKIE_MANAGEMENT.md](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md))
 - yt-dlp installed in image
 - IPFS access
-- Port 8000 available
+- Port 6666 available
 
 #### Deployment Steps:
 
@@ -221,7 +221,7 @@ docker-compose up -d
 docker exec ytipfs-worker ls -la /app/cookies/
 
 # 6. Test functionality
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 ```
 
 ---
@@ -254,7 +254,7 @@ cat .env  # Ensure RC_AMOUNT, AUTHORITY_ACCOUNT set
 # - Log verification
 
 # 4. Verify deployment
-curl https://minivlad.tail9656d3.ts.net/healthz
+curl https://minivlad.tail83ea3e.ts.net/healthz
 
 # Expected response:
 # {
@@ -268,7 +268,7 @@ curl https://minivlad.tail9656d3.ts.net/healthz
 #### Post-Deployment Tasks:
 ```bash
 # Check RC balance
-curl https://minivlad.tail9656d3.ts.net/rc-status
+curl https://minivlad.tail83ea3e.ts.net/rc-status
 
 # If insufficient, top up:
 # (Manual process - transfer RC to authority account)
@@ -318,7 +318,7 @@ git push origin main
 # Vercel auto-deploys on push to main
 
 # 3. Verify deployment
-curl https://your-vercel-domain.vercel.app/api/status
+curl https://api.skatehive.app/api/status
 ```
 
 ---
@@ -420,7 +420,7 @@ chmod 600 skatehive-instagram-downloader/ytipfs-worker/cookies/cookies.txt
 docker start ytipfs-worker
 
 # Verify
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 ```
 
 ---
@@ -472,7 +472,7 @@ cp /backup/skatehive/20251204/cookies.txt \
 docker-compose up -d
 
 # 7. Verify all services
-curl https://minivlad.tail9656d3.ts.net/api/status
+curl https://api.skatehive.app/api/status
 ```
 
 ---
@@ -486,7 +486,7 @@ curl https://minivlad.tail9656d3.ts.net/api/status
 ```bash
 # Serve local services on the tailnet
 sudo tailscale serve --bg --set-path /video http://localhost:8081
-sudo tailscale serve --bg --set-path /instagram http://localhost:8000
+sudo tailscale serve --bg --set-path /instagram http://localhost:6666
 sudo tailscale serve --bg --set-path /healthz http://localhost:3001
 
 # Expose over the internet on 443
@@ -497,9 +497,9 @@ tailscale serve status
 tailscale funnel status
 
 # Expected output:
-# https://minivlad.tail9656d3.ts.net (Funnel on)
+# https://minivlad.tail83ea3e.ts.net (Funnel on)
 #   |-- /video -> http://localhost:8081
-#   |-- /instagram -> http://localhost:8000
+#   |-- /instagram -> http://localhost:6666
 ```
 
 ---
@@ -528,10 +528,10 @@ ping vladsberry.tail83ea3e.ts.net
 curl http://100.x.x.x:8081/video/healthz
 
 # From public internet (via Funnel)
-curl https://minivlad.tail9656d3.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
 
 # Check DNS resolution
-nslookup minivlad.tail9656d3.ts.net
+nslookup minivlad.tail83ea3e.ts.net
 ```
 
 ---
@@ -546,9 +546,9 @@ Create: `/usr/local/bin/skatehive-health-check.sh`
 #!/bin/bash
 
 SERVICES=(
-  "https://minivlad.tail9656d3.ts.net/video/healthz|Video Transcoder"
-  "https://minivlad.tail9656d3.ts.net/instagram/health|Instagram Downloader"
-  "https://minivlad.tail9656d3.ts.net/healthz|Account Manager"
+  "https://minivlad.tail83ea3e.ts.net/video/healthz|Video Transcoder"
+  "https://minivlad.tail83ea3e.ts.net/instagram/healthz|Instagram Downloader"
+  "https://minivlad.tail83ea3e.ts.net/healthz|Account Manager"
 )
 
 for service in "${SERVICES[@]}"; do
@@ -600,7 +600,7 @@ The dashboard provides:
 
 ```bash
 # 1. Check service health
-curl https://minivlad.tail9656d3.ts.net/api/status | jq
+curl https://api.skatehive.app/api/status | jq
 
 # 2. Review logs for errors
 docker-compose logs --since 7d | grep -i error
@@ -610,7 +610,7 @@ df -h
 docker system df
 
 # 4. Review cookie expiration
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 
 # 5. Verify backups
 ls -lh /backup/skatehive/
@@ -693,7 +693,7 @@ docker restart <container_name>
 sleep 5
 
 # Check if resolved
-curl https://minivlad.tail9656d3.ts.net/<service>/healthz
+curl https://minivlad.tail83ea3e.ts.net/<service>/healthz
 ```
 
 ---
@@ -732,7 +732,7 @@ docker-compose up -d <service_name>
 
 ```bash
 # 1. Verify issue
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 # If "cookies_valid": false
 
 # 2. Quick refresh using setup script
@@ -751,7 +751,7 @@ curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
 
 ```bash
 # 1. Check RC balance
-curl https://minivlad.tail9656d3.ts.net/rc-status
+curl https://minivlad.tail83ea3e.ts.net/rc-status
 
 # Response shows:
 # "rc_balance": 1000000000000  # 1T
@@ -764,7 +764,7 @@ curl https://minivlad.tail9656d3.ts.net/rc-status
 # - Wait for RC to propagate (1-2 minutes)
 
 # 3. Verify restoration
-curl https://minivlad.tail9656d3.ts.net/rc-status
+curl https://minivlad.tail83ea3e.ts.net/rc-status
 # "can_create_accounts": true  # ✅
 ```
 
@@ -793,7 +793,7 @@ docker-compose up -d
 
 # 5. Verify services
 curl https://vladsberry.tail83ea3e.ts.net/video/healthz
-curl https://vladsberry.tail83ea3e.ts.net/instagram/health
+curl https://vladsberry.tail83ea3e.ts.net/instagram/healthz
 ```
 
 ---
@@ -806,7 +806,7 @@ docker info
 
 # 2. Check port conflicts
 sudo lsof -i :8081
-sudo lsof -i :8000
+sudo lsof -i :6666
 sudo lsof -i :3001
 
 # 3. Check volume mounts
@@ -828,10 +828,10 @@ docker run -it --rm \
 
 ## 📚 Related Documentation
 
-- [System Architecture](./ARCHITECTURE.md)
+- [System Architecture](../architecture/ARCHITECTURE.md)
 - [Instagram Cookie Management](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
 - [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md)
-- [API Reference](./API_REFERENCE.md)
+- [API Reference](../reference/API_REFERENCE.md)
 
 ---
 
@@ -840,7 +840,7 @@ docker run -it --rm \
 ```bash
 # Service Status
 docker ps
-curl https://minivlad.tail9656d3.ts.net/api/status
+curl https://api.skatehive.app/api/status
 
 # Restart All Services
 docker-compose restart

@@ -23,7 +23,7 @@
 
 ```bash
 # 1. Check all services at once
-curl https://minivlad.tail9656d3.ts.net/api/status | jq
+curl https://api.skatehive.app/api/status | jq
 
 # 2. Check Docker containers
 docker ps -a
@@ -68,7 +68,7 @@ Getting timeout errors?
 
 **Symptoms:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
 # Returns: HTTP 500 Internal Server Error
 ```
 
@@ -218,14 +218,14 @@ docker exec video-worker ffmpeg -codecs | grep -i h264
 
 **Symptoms:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/instagram/health
+curl https://minivlad.tail83ea3e.ts.net/instagram/healthz
 # Returns: "cookies_valid": false
 ```
 
 **Diagnosis:**
 ```bash
 # Check cookie status
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 
 # Response shows:
 {
@@ -245,7 +245,7 @@ Follow [Instagram Cookie Management Guide](./docs/operations/INSTAGRAM_COOKIE_MA
 ./setup-instagram-cookies.sh /path/to/new/cookies.txt
 
 # Verify
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 ```
 
 ---
@@ -254,7 +254,7 @@ curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
 
 **Symptoms:**
 ```bash
-curl -X POST https://minivlad.tail9656d3.ts.net/instagram/download \
+curl -X POST https://minivlad.tail83ea3e.ts.net/instagram/download \
   -H "Content-Type: application/json" \
   -d '{"url": "https://instagram.com/p/abc123"}'
 
@@ -335,7 +335,7 @@ docker logs ytipfs-worker | grep -i "rate limit"
 # Instagram typically resets rate limits quickly
 
 # Monitor recovery
-watch -n 60 'curl -s https://minivlad.tail9656d3.ts.net/instagram/health | jq ".cookies_valid"'
+watch -n 60 'curl -s https://minivlad.tail83ea3e.ts.net/instagram/healthz | jq ".cookies_valid"'
 ```
 
 #### Persistent Rate Limiting:
@@ -385,7 +385,7 @@ docker-compose up -d
 
 **Symptoms:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/healthz
+curl https://minivlad.tail83ea3e.ts.net/healthz
 
 # Returns:
 {
@@ -399,7 +399,7 @@ curl https://minivlad.tail9656d3.ts.net/healthz
 **Diagnosis:**
 ```bash
 # Check current RC balance
-curl https://minivlad.tail9656d3.ts.net/rc-status | jq
+curl https://minivlad.tail83ea3e.ts.net/rc-status | jq
 
 # Check authority account
 docker logs skatehive-account-manager | grep -i "authority"
@@ -417,7 +417,7 @@ docker logs skatehive-account-manager | grep -i "authority"
 # 4. Wait 1-2 minutes for blockchain propagation
 
 # Verify restoration
-curl https://minivlad.tail9656d3.ts.net/rc-status
+curl https://minivlad.tail83ea3e.ts.net/rc-status
 
 # Expected:
 {
@@ -505,10 +505,10 @@ docker-compose restart
 **Diagnosis:**
 ```bash
 # Check if service is actually down
-curl https://minivlad.tail9656d3.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
 
 # Compare with status API
-curl https://minivlad.tail9656d3.ts.net/api/status | jq '.services[] | select(.id=="macmini-video")'
+curl https://api.skatehive.app/api/status | jq '.services[] | select(.id=="macmini-video")'
 ```
 
 **Solution:**
@@ -536,7 +536,7 @@ git push origin main
 **Diagnosis:**
 ```bash
 # Check status API response
-curl https://minivlad.tail9656d3.ts.net/api/status | jq '.services[] | select(.category=="Instagram Downloader")'
+curl https://api.skatehive.app/api/status | jq '.services[] | select(.category=="Instagram Downloader")'
 
 # Should include:
 # "cookieInfo": {
@@ -566,8 +566,8 @@ pnpm dev
 
 **Symptoms:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/video/healthz
-# curl: (7) Failed to connect to minivlad.tail9656d3.ts.net port 443: Connection refused
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
+# curl: (7) Failed to connect to minivlad.tail83ea3e.ts.net port 443: Connection refused
 ```
 
 **Diagnosis:**
@@ -579,7 +579,7 @@ tailscale status
 tailscale funnel status
 
 # Ping the host
-ping minivlad.tail9656d3.ts.net
+ping minivlad.tail83ea3e.ts.net
 ```
 
 **Solutions:**
@@ -597,7 +597,7 @@ tailscale status
 ```bash
 # Serve and funnel service paths
 sudo tailscale serve --bg --set-path /video http://localhost:8081
-sudo tailscale serve --bg --set-path /instagram http://localhost:8000
+sudo tailscale serve --bg --set-path /instagram http://localhost:6666
 sudo tailscale serve --bg --set-path /healthz http://localhost:3001
 sudo tailscale funnel --bg 443
 
@@ -626,12 +626,12 @@ docker-compose up -d video-worker
 ```bash
 # Test connection stability
 for i in {1..10}; do 
-  curl -w "Response time: %{time_total}s\n" https://minivlad.tail9656d3.ts.net/video/healthz
+  curl -w "Response time: %{time_total}s\n" https://minivlad.tail83ea3e.ts.net/video/healthz
   sleep 1
 done
 
 # Check network latency
-ping -c 20 minivlad.tail9656d3.ts.net
+ping -c 20 minivlad.tail83ea3e.ts.net
 ```
 
 **Solutions:**
@@ -639,7 +639,7 @@ ping -c 20 minivlad.tail9656d3.ts.net
 #### High Network Latency:
 ```bash
 # Check Tailscale routing
-tailscale ping minivlad.tail9656d3.ts.net
+tailscale ping minivlad.tail83ea3e.ts.net
 
 # Consider using direct IP if on same network
 tailscale ip -4  # Get Tailscale IP
@@ -666,14 +666,14 @@ deploy:
 
 **Symptoms:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/video/healthz
-# curl: (6) Could not resolve host: minivlad.tail9656d3.ts.net
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
+# curl: (6) Could not resolve host: minivlad.tail83ea3e.ts.net
 ```
 
 **Diagnosis:**
 ```bash
 # Check DNS resolution
-nslookup minivlad.tail9656d3.ts.net
+nslookup minivlad.tail83ea3e.ts.net
 
 # Check Tailscale DNS (MagicDNS)
 tailscale status | grep -i dns
@@ -1029,7 +1029,7 @@ docker restart <service>
 ./health-check.sh
 
 # Check all services
-curl https://minivlad.tail9656d3.ts.net/api/status | jq
+curl https://api.skatehive.app/api/status | jq
 
 # Monitor containers in real-time
 docker stats
@@ -1086,9 +1086,9 @@ docker-compose logs > logs/debug-$(date +%Y%m%d).log
 ## 📚 Related Documentation
 
 - [Infrastructure Operations](./INFRASTRUCTURE_OPERATIONS.md)
-- [System Architecture](./ARCHITECTURE.md)
+- [System Architecture](../architecture/ARCHITECTURE.md)
 - [Instagram Cookie Management](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
-- [API Reference](./API_REFERENCE.md)
+- [API Reference](../reference/API_REFERENCE.md)
 
 ---
 

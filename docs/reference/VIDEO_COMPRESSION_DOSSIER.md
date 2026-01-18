@@ -34,7 +34,7 @@ User Browser (No Compression)
          ↓ (if fails)
 ┌────────────────────────────────┐
 │  Priority 2: Mac Mini M4       │
-│  (minivlad.tail9656d3.ts.net)  │
+│  (minivlad.tail83ea3e.ts.net)  │
 │  - Fast M4 chip processing      │
 │  - Tailscale private network    │
 │  - Secondary/backup server      │
@@ -239,7 +239,7 @@ if (primaryResult.success) return primaryResult;
 
 // Priority 2: Mac Mini M4 (Secondary)
 const secondaryResult = await tryServer(
-  'https://minivlad.tail9656d3.ts.net/video/transcode',
+  'https://minivlad.tail83ea3e.ts.net/video/transcode',
   file, username, 'Mac Mini M4 (Secondary)', enhancedOptions
 );
 if (secondaryResult.success) return secondaryResult;
@@ -469,7 +469,7 @@ Access-Control-Allow-Headers: Content-Type,Authorization,Accept,X-Requested-With
 
 **Test Mac Mini M4 Transcoder:**
 ```bash
-curl -X POST https://minivlad.tail9656d3.ts.net/video/transcode \
+curl -X POST https://minivlad.tail83ea3e.ts.net/video/transcode \
   -F "video=@test_video.mp4" \
   -F "creator=testuser" \
   -F "platform=desktop" \
@@ -485,8 +485,8 @@ curl -X POST https://146-235-239-243.sslip.io/transcode \
 
 **Check Transcoder Health:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/video/healthz
-curl https://minivlad.tail9656d3.ts.net/video/stats
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/stats
 ```
 
 ### Automated Testing Recommendations
@@ -633,9 +633,9 @@ services:
 
 ## 🔗 Related Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture overview
-- [INFRASTRUCTURE_OPERATIONS.md](./INFRASTRUCTURE_OPERATIONS.md) - Deployment and maintenance
-- [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md) - Video processing issues
+- [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) - System architecture overview
+- [INFRASTRUCTURE_OPERATIONS.md](../operations/INFRASTRUCTURE_OPERATIONS.md) - Deployment and maintenance
+- [TROUBLESHOOTING_GUIDE.md](../operations/TROUBLESHOOTING_GUIDE.md) - Video processing issues
 - [API_REFERENCE.md](./API_REFERENCE.md) - API endpoint documentation
 
 ---

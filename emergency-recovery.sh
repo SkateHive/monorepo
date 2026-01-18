@@ -66,13 +66,13 @@ sleep 30
 # Test services
 echo "🧪 Testing services..."
 echo "Video Local: $(curl -s $VIDEO_LOCAL_URL/healthz | jq -r .service || echo 'FAILED')"
-echo "Instagram Local: $(curl -s $INSTAGRAM_LOCAL_URL/health | jq -r .status || echo 'FAILED')"
+echo "Instagram Local: $(curl -s $INSTAGRAM_LOCAL_URL/healthz | jq -r .status || echo 'FAILED')"
 
 sleep 10
 
 if [ -n "$VIDEO_EXTERNAL_URL" ]; then
     echo "Video External: $(curl -s $VIDEO_EXTERNAL_URL/healthz | jq -r .service || echo 'FAILED')"
-    echo "Instagram External: $(curl -s $INSTAGRAM_EXTERNAL_URL/health | jq -r .status || echo 'FAILED')"
+    echo "Instagram External: $(curl -s $INSTAGRAM_EXTERNAL_URL/healthz | jq -r .status || echo 'FAILED')"
 fi
 
 echo "🎉 Emergency recovery completed!"

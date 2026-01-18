@@ -148,7 +148,7 @@ if wait_for_docker; then
         log "🧪 Testing external service accessibility..."
         
         if check_service "$NODE_NAME Video (External)" "$VIDEO_EXTERNAL_URL/healthz" 15; then
-            if check_service "$NODE_NAME Instagram (External)" "$INSTAGRAM_EXTERNAL_URL/health" 15; then
+        if check_service "$NODE_NAME Instagram (External)" "$INSTAGRAM_EXTERNAL_URL/healthz" 15; then
                 log "🎉 All services are running and accessible externally!"
                 log "🌟 SkateHive $NODE_NAME is ready to serve as $NODE_ROLE server"
             else
@@ -162,7 +162,7 @@ if wait_for_docker; then
     # Test local services as backup
     log "🏠 Testing local service accessibility..."
     check_service "Video (Local)" "$VIDEO_LOCAL_URL/healthz" 5
-    check_service "Instagram (Local)" "$INSTAGRAM_LOCAL_URL/health" 5
+    check_service "Instagram (Local)" "$INSTAGRAM_LOCAL_URL/healthz" 5
     
 else
     log "❌ Docker failed to start - manual intervention required"

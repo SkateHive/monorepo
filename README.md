@@ -118,7 +118,7 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 **Configuration:**
 - Port: `8081`
 - Max Upload: `200MB` (configurable via `MAX_UPLOAD_MB`)
-- External URL: `https://minivlad.tail9656d3.ts.net/video/transcode`
+- External URL: `https://minivlad.tail83ea3e.ts.net/video/transcode`
 
 ### 📱 **mobileapp/** - React Native Mobile Application
 **Expo/React Native app** for iOS and Android - Native mobile experience for SkateHive
@@ -159,14 +159,14 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 **API Endpoints:**
 - `POST /download` - Download content via JSON payload
 - `GET /d/<base64_slug>` - Download via URL slug
-- `GET /health` - Service health with cookie status
+- `GET /healthz` - Service health with cookie status
 - `POST /cookies/validate` - Validate Instagram cookies
 - `GET /cookies/status` - Cookie expiration status
 
 **Configuration:**
-- Port: `8000` (local)
+- Port: `6666` (host) / `8000` (container)
 - Cookie File: `data/instagram_cookies.txt` (Netscape format)
-- External URL: `https://vladsberry.tail83ea3e.ts.net/instagram/download` (via Tailscale Funnel on 443)
+- External URL: `https://minivlad.tail83ea3e.ts.net/instagram/download` (primary via Tailscale Funnel)
 - **Blockchain Integration**: Hive blockchain posting, Ethereum/Farcaster protocols
 - **Content Management**: Video uploads, blog posts, community interactions
 - **Skate Mapping**: Interactive maps for skate spot sharing
@@ -241,7 +241,7 @@ The **webapp (skatehive3.0)** consumes shared backend services:
 | Service | URL | Priority |
 |---------|-----|:--------:|
 | Oracle (Primary) | `146-235-239-243.sslip.io/transcode` | 1 |
-| Mac Mini M4 (Secondary) | `minivlad.tail9656d3.ts.net/video/transcode` | 2 |
+| Mac Mini M4 (Secondary) | `minivlad.tail83ea3e.ts.net/video/transcode` | 2 |
 | Raspberry Pi (Tertiary) | `vladsberry.tail83ea3e.ts.net/video/transcode` | 3 |
 
 ### 🔗 Other Shared Services

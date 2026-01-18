@@ -8,23 +8,23 @@
 ## 🗺️ Quick Navigation
 
 ### 🚀 Getting Started
-- [Main README](./README.md) - Project overview and quick start
-- [Architecture Overview](./ARCHITECTURE.md) - System design and infrastructure
+- [Main README](../README.md) - Project overview and quick start
+- [Architecture Overview](./architecture/ARCHITECTURE.md) - System design and infrastructure
 - [Service Setup Guides](#service-documentation)
 
 ### 👨‍💻 For Developers
-- [API Reference](./API_REFERENCE.md) - Complete API documentation
-- [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md) - Common issues and solutions
+- [API Reference](./reference/API_REFERENCE.md) - Complete API documentation
+- [Troubleshooting Guide](./operations/TROUBLESHOOTING_GUIDE.md) - Common issues and solutions
 - [Development Guides](#development-documentation)
 
 ### 🔧 For Operations
-- [Infrastructure Operations](./INFRASTRUCTURE_OPERATIONS.md) - Deployment and maintenance
-- [Instagram Cookie Management](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md) - Cookie refresh procedures
-- [Emergency Procedures](./INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
+- [Infrastructure Operations](./operations/INFRASTRUCTURE_OPERATIONS.md) - Deployment and maintenance
+- [Instagram Cookie Management](./operations/INSTAGRAM_COOKIE_MANAGEMENT.md) - Cookie refresh procedures
+- [Emergency Procedures](./operations/INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
 
 ### 📊 Status & Reports
-- [Service Status](https://minivlad.tail9656d3.ts.net/api/status) - Live service health
-- Archived docs: `./docs/archive/`
+- [Service Status](https://api.skatehive.app/api/status) - Live service health
+- Archived docs: `./ai-temp/`
 
 ---
 
@@ -32,7 +32,7 @@
 
 ### Core Documentation
 
-#### 🏗️ [ARCHITECTURE.md](./ARCHITECTURE.md)
+#### 🏗️ [ARCHITECTURE.md](./architecture/ARCHITECTURE.md)
 **What:** Complete system architecture documentation  
 **When to use:** Understanding system design, planning changes, onboarding new team members  
 **Key sections:**
@@ -48,7 +48,7 @@
 
 ---
 
-#### 🔧 [INFRASTRUCTURE_OPERATIONS.md](./INFRASTRUCTURE_OPERATIONS.md)
+#### 🔧 [INFRASTRUCTURE_OPERATIONS.md](./operations/INFRASTRUCTURE_OPERATIONS.md)
 **What:** Day-to-day operations guide  
 **When to use:** Deploying services, performing maintenance, emergency response  
 **Key sections:**
@@ -64,7 +64,7 @@
 
 ---
 
-#### 🐛 [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)
+#### 🐛 [TROUBLESHOOTING_GUIDE.md](./operations/TROUBLESHOOTING_GUIDE.md)
 **What:** Comprehensive troubleshooting reference  
 **When to use:** When services fail, debugging issues, resolving errors  
 **Key sections:**
@@ -80,7 +80,7 @@
 
 ---
 
-#### 📡 [API_REFERENCE.md](./API_REFERENCE.md)
+#### 📡 [API_REFERENCE.md](./reference/API_REFERENCE.md)
 **What:** Complete API documentation for all services  
 **When to use:** Integrating services, building clients, API testing  
 **Key sections:**
@@ -95,7 +95,7 @@
 
 ---
 
-#### 🍪 [docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
+#### 🍪 [docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md](./operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
 **What:** Instagram cookie acquisition and management  
 **When to use:** Setting up Instagram service, refreshing expired cookies, troubleshooting auth  
 **Key sections:**
@@ -113,7 +113,7 @@
 
 ### Service Documentation
 
-#### 🎬 [skatehive-video-transcoder/README.md](./skatehive-video-transcoder/README.md)
+#### 🎬 [skatehive-video-transcoder/README.md](../skatehive-video-transcoder/README.md)
 **What:** Video transcoding service documentation  
 **Features:**
 - Automated video transcoding (HLS + MP4)
@@ -125,12 +125,12 @@
 ```bash
 cd skatehive-video-transcoder
 docker-compose up -d
-curl https://minivlad.tail9656d3.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
 ```
 
 ---
 
-#### 📸 [skatehive-instagram-downloader/README.md](./skatehive-instagram-downloader/README.md)
+#### 📸 [skatehive-instagram-downloader/README.md](../skatehive-instagram-downloader/README.md)
 **What:** Social media content downloader  
 **Features:**
 - Instagram post/reel/story downloads
@@ -143,7 +143,7 @@ curl https://minivlad.tail9656d3.ts.net/video/healthz
 ```bash
 cd skatehive-instagram-downloader/ytipfs-worker
 docker-compose up -d
-curl https://minivlad.tail9656d3.ts.net/instagram/health
+curl https://minivlad.tail83ea3e.ts.net/instagram/healthz
 ```
 
 ---
@@ -204,20 +204,20 @@ python3 dashboard.py
 
 ### Operations Documentation
 
-- See `docs/archive/` for retired documentation cleanup/validation reports.
+- See `ai-temp/` for retired documentation cleanup/validation reports.
 
 ### Archived Documentation
 
-Located in [docs/archive/](./docs/archive/)
+Located in [ai-temp/](./ai-temp/)
 
-#### 🔧 [docs/archive/INSTAGRAM_TIMEOUT_FIX_PROMPT.md](./docs/archive/INSTAGRAM_TIMEOUT_FIX_PROMPT.md)
+#### 🔧 [ai-temp/INSTAGRAM_TIMEOUT_FIX_PROMPT.md](./ai-temp/INSTAGRAM_TIMEOUT_FIX_PROMPT.md)
 **Status:** ✅ Resolved - December 5, 2025  
 **Issue:** Instagram timeout configuration for development vs production  
 **Resolution:** Fixed in code with environment-aware server configuration
 
 ---
 
-#### 🎉 [docs/archive/dashboard_responsive_success_2025.md](./docs/archive/dashboard_responsive_success_2025.md)
+#### 🎉 [ai-temp/dashboard_responsive_success_2025.md](./ai-temp/dashboard_responsive_success_2025.md)
 **Status:** Historical reference  
 **Content:** Dashboard responsive implementation success report  
 **Note:** Information merged into main dashboard README
@@ -230,14 +230,14 @@ Located in [docs/archive/](./docs/archive/)
 
 **I want to...**
 
-- **Deploy a service** → [Infrastructure Operations - Deployment Workflows](./INFRASTRUCTURE_OPERATIONS.md#deployment-workflows)
-- **Fix a service failure** → [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md)
-- **Integrate with an API** → [API Reference](./API_REFERENCE.md)
-- **Refresh Instagram cookies** → [Instagram Cookie Management](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
-- **Understand the system** → [Architecture](./ARCHITECTURE.md)
-- **Set up monitoring** → [Infrastructure Operations - Monitoring](./INFRASTRUCTURE_OPERATIONS.md#monitoring--alerting)
-- **Create a backup** → [Infrastructure Operations - Backup](./INFRASTRUCTURE_OPERATIONS.md#backup--recovery)
-- **Handle an emergency** → [Infrastructure Operations - Emergency](./INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
+- **Deploy a service** → [Infrastructure Operations - Deployment Workflows](./operations/INFRASTRUCTURE_OPERATIONS.md#deployment-workflows)
+- **Fix a service failure** → [Troubleshooting Guide](./operations/TROUBLESHOOTING_GUIDE.md)
+- **Integrate with an API** → [API Reference](./reference/API_REFERENCE.md)
+- **Refresh Instagram cookies** → [Instagram Cookie Management](./operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
+- **Understand the system** → [Architecture](./architecture/ARCHITECTURE.md)
+- **Set up monitoring** → [Infrastructure Operations - Monitoring](./operations/INFRASTRUCTURE_OPERATIONS.md#monitoring--alerting)
+- **Create a backup** → [Infrastructure Operations - Backup](./operations/INFRASTRUCTURE_OPERATIONS.md#backup--recovery)
+- **Handle an emergency** → [Infrastructure Operations - Emergency](./operations/INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
 
 ---
 
@@ -245,8 +245,8 @@ Located in [docs/archive/](./docs/archive/)
 
 **I need docs for...**
 
-- **Video Transcoder** → [Service README](./skatehive-video-transcoder/README.md) | [API](./API_REFERENCE.md#video-transcoder-api) | [Troubleshooting](./TROUBLESHOOTING_GUIDE.md#video-transcoder-issues)
-- **Instagram Downloader** → [Service README](./skatehive-instagram-downloader/README.md) | [API](./API_REFERENCE.md#instagram-downloader-api) | [Cookie Management](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
+- **Video Transcoder** → [Service README](../skatehive-video-transcoder/README.md) | [API](./reference/API_REFERENCE.md#video-transcoder-api) | [Troubleshooting](./operations/TROUBLESHOOTING_GUIDE.md#video-transcoder-issues)
+- **Instagram Downloader** → [Service README](../skatehive-instagram-downloader/README.md) | [API](./reference/API_REFERENCE.md#instagram-downloader-api) | [Cookie Management](./operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
 - **Dashboard** → [Service README](./skatehive-dashboard/README.md)
 - **Main App** → [Service README](./skatehive3.0/README.md) | [Agents](./skatehive3.0/AGENTS.md) | [Rules](./skatehive3.0/RULES.md)
 
@@ -258,56 +258,56 @@ Located in [docs/archive/](./docs/archive/)
 
 #### Developer 👨‍💻
 **Start here:**
-1. [Main README](./README.md)
-2. [Architecture](./ARCHITECTURE.md)
-3. [API Reference](./API_REFERENCE.md)
+1. [Main README](../README.md)
+2. [Architecture](./architecture/ARCHITECTURE.md)
+3. [API Reference](./reference/API_REFERENCE.md)
 4. [Development Rules](./skatehive3.0/RULES.md)
 
 **Common tasks:**
-- [Testing APIs](./API_REFERENCE.md)
-- [Running services locally](./INFRASTRUCTURE_OPERATIONS.md#service-management)
-- [Debugging issues](./TROUBLESHOOTING_GUIDE.md)
+- [Testing APIs](./reference/API_REFERENCE.md)
+- [Running services locally](./operations/INFRASTRUCTURE_OPERATIONS.md#service-management)
+- [Debugging issues](./operations/TROUBLESHOOTING_GUIDE.md)
 
 ---
 
 #### DevOps Engineer 🔧
 **Start here:**
-1. [Infrastructure Operations](./INFRASTRUCTURE_OPERATIONS.md)
-2. [Architecture](./ARCHITECTURE.md)
-3. [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md)
+1. [Infrastructure Operations](./operations/INFRASTRUCTURE_OPERATIONS.md)
+2. [Architecture](./architecture/ARCHITECTURE.md)
+3. [Troubleshooting Guide](./operations/TROUBLESHOOTING_GUIDE.md)
 
 **Common tasks:**
-- [Deploying services](./INFRASTRUCTURE_OPERATIONS.md#deployment-workflows)
-- [Setting up monitoring](./INFRASTRUCTURE_OPERATIONS.md#monitoring--alerting)
-- [Managing backups](./INFRASTRUCTURE_OPERATIONS.md#backup--recovery)
-- [Refreshing cookies](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
-- [Emergency response](./INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
+- [Deploying services](./operations/INFRASTRUCTURE_OPERATIONS.md#deployment-workflows)
+- [Setting up monitoring](./operations/INFRASTRUCTURE_OPERATIONS.md#monitoring--alerting)
+- [Managing backups](./operations/INFRASTRUCTURE_OPERATIONS.md#backup--recovery)
+- [Refreshing cookies](./operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
+- [Emergency response](./operations/INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
 
 ---
 
 #### System Administrator 🖥️
 **Start here:**
-1. [Infrastructure Operations](./INFRASTRUCTURE_OPERATIONS.md)
-2. [Instagram Cookie Management](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
-3. [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md)
+1. [Infrastructure Operations](./operations/INFRASTRUCTURE_OPERATIONS.md)
+2. [Instagram Cookie Management](./operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
+3. [Troubleshooting Guide](./operations/TROUBLESHOOTING_GUIDE.md)
 
 **Common tasks:**
-- [Service management](./INFRASTRUCTURE_OPERATIONS.md#service-management)
-- [Health checks](./TROUBLESHOOTING_GUIDE.md#quick-diagnosis)
-- [Cookie refresh](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md#refresh-procedures)
-- [Network configuration](./INFRASTRUCTURE_OPERATIONS.md#network-operations)
+- [Service management](./operations/INFRASTRUCTURE_OPERATIONS.md#service-management)
+- [Health checks](./operations/TROUBLESHOOTING_GUIDE.md#quick-diagnosis)
+- [Cookie refresh](./operations/INSTAGRAM_COOKIE_MANAGEMENT.md#refresh-procedures)
+- [Network configuration](./operations/INFRASTRUCTURE_OPERATIONS.md#network-operations)
 
 ---
 
 #### API Consumer 📱
 **Start here:**
-1. [API Reference](./API_REFERENCE.md)
+1. [API Reference](./reference/API_REFERENCE.md)
 2. [Service README files](#service-documentation)
 
 **Common tasks:**
-- [Video upload API](./API_REFERENCE.md#upload-video-for-transcoding)
-- [Instagram download API](./API_REFERENCE.md#download-instagram-content)
-- [Status monitoring API](./API_REFERENCE.md#service-status)
+- [Video upload API](./reference/API_REFERENCE.md#upload-video-for-transcoding)
+- [Instagram download API](./reference/API_REFERENCE.md#download-instagram-content)
+- [Status monitoring API](./reference/API_REFERENCE.md#service-status)
 
 ---
 
@@ -336,12 +336,12 @@ Located in [docs/archive/](./docs/archive/)
 
 ### December 5, 2025 - Phase 2 Documentation Enhancement
 ✅ **Created:**
-- ARCHITECTURE.md - Complete system architecture
-- INFRASTRUCTURE_OPERATIONS.md - Operations playbook
-- TROUBLESHOOTING_GUIDE.md - Comprehensive troubleshooting
-- API_REFERENCE.md - Complete API documentation
+- architecture/ARCHITECTURE.md - Complete system architecture
+- operations/INFRASTRUCTURE_OPERATIONS.md - Operations playbook
+- operations/TROUBLESHOOTING_GUIDE.md - Comprehensive troubleshooting
+- reference/API_REFERENCE.md - Complete API documentation
 - docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md - Cookie management guide
-- DOCS_INDEX.md - This navigation hub
+- index.md - This navigation hub
 
 ✅ **Updated:**
 - skatehive-video-transcoder/README.md - Port clarification and production config
@@ -359,16 +359,16 @@ Located in [docs/archive/](./docs/archive/)
 
 ### Documentation Issues
 If documentation is unclear, incorrect, or missing:
-1. Check [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md) first
-2. Search archived docs in [docs/archive/](./docs/archive/)
+1. Check [Troubleshooting Guide](./operations/TROUBLESHOOTING_GUIDE.md) first
+2. Search archived docs in [ai-temp/](./ai-temp/)
 
 ### Service Issues
-1. Check [Quick Diagnosis](./TROUBLESHOOTING_GUIDE.md#quick-diagnosis)
+1. Check [Quick Diagnosis](./operations/TROUBLESHOOTING_GUIDE.md#quick-diagnosis)
 2. Review service-specific troubleshooting sections
-3. Check [Emergency Procedures](./INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
+3. Check [Emergency Procedures](./operations/INFRASTRUCTURE_OPERATIONS.md#emergency-procedures)
 
 ### API Questions
-1. Review [API Reference](./API_REFERENCE.md)
+1. Review [API Reference](./reference/API_REFERENCE.md)
 2. Check SDK examples in API docs
 3. Test with provided cURL examples
 
@@ -382,7 +382,7 @@ When adding or updating documentation:
    - Core docs → Root directory
    - Service docs → Service directory README.md
    - Operations docs → docs/operations/
-   - Archived docs → docs/archive/
+   - Archived docs → ai-temp/
 
 2. **Format:**
    - Use Markdown
@@ -409,10 +409,10 @@ When adding or updating documentation:
 ## 🔗 Quick Links
 
 ### Live Services
-- [Mac Mini M4 Video Transcoder](https://minivlad.tail9656d3.ts.net/video/healthz)
-- [Mac Mini M4 Instagram Downloader](https://minivlad.tail9656d3.ts.net/instagram/health)
-- [Mac Mini M4 Account Manager](https://minivlad.tail9656d3.ts.net/healthz)
-- [Service Status Dashboard](https://minivlad.tail9656d3.ts.net/api/status)
+- [Mac Mini M4 Video Transcoder](https://minivlad.tail83ea3e.ts.net/video/healthz)
+- [Mac Mini M4 Instagram Downloader](https://minivlad.tail83ea3e.ts.net/instagram/healthz)
+- [Mac Mini M4 Account Manager](https://minivlad.tail83ea3e.ts.net/healthz)
+- [Service Status Dashboard](https://api.skatehive.app/api/status)
 
 ### Tools & Scripts
 - [Health Check Script](./health-check.sh)
@@ -431,8 +431,8 @@ When adding or updating documentation:
 ## 📅 Maintenance Schedule
 
 ### Weekly Tasks
-- Review [Service Status](https://minivlad.tail9656d3.ts.net/api/status)
-- Check [Cookie Status](https://minivlad.tail9656d3.ts.net/instagram/cookies/status)
+- Review [Service Status](https://api.skatehive.app/api/status)
+- Check [Cookie Status](https://minivlad.tail83ea3e.ts.net/instagram/cookies/status)
 - Run health checks
 
 ### Monthly Tasks

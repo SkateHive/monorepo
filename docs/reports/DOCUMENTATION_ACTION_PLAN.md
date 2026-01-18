@@ -101,20 +101,20 @@ const getInstagramServers = () => {
 
 ```bash
 # Test Mac Mini M4 Services
-curl -v https://minivlad.tail9656d3.ts.net/video/healthz
-curl -v https://minivlad.tail9656d3.ts.net/instagram/health
-curl -v https://minivlad.tail9656d3.ts.net/healthz
+curl -v https://minivlad.tail83ea3e.ts.net/video/healthz
+curl -v https://minivlad.tail83ea3e.ts.net/instagram/healthz
+curl -v https://minivlad.tail83ea3e.ts.net/healthz
 
 # Test Raspberry Pi Services  
 curl -v https://vladsberry.tail83ea3e.ts.net/video/healthz
-curl -v https://vladsberry.tail83ea3e.ts.net/instagram/health
+curl -v https://vladsberry.tail83ea3e.ts.net/instagram/healthz
 
 # Test Instagram Cookie Status
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 
 # Test Video Transcoder Stats
-curl https://minivlad.tail9656d3.ts.net/video/stats
-curl https://minivlad.tail9656d3.ts.net/video/logs
+curl https://minivlad.tail83ea3e.ts.net/video/stats
+curl https://minivlad.tail83ea3e.ts.net/video/logs
 ```
 
 **Expected Results:**
@@ -151,18 +151,18 @@ docker ps --format "table {{.Names}}\t{{.Ports}}"
 
 ```bash
 # Video Transcoder (with test file)
-curl -F "video=@test_video.mp4" https://minivlad.tail9656d3.ts.net/video/transcode
+curl -F "video=@test_video.mp4" https://minivlad.tail83ea3e.ts.net/video/transcode
 
 # Instagram Download
-curl -X POST https://minivlad.tail9656d3.ts.net/instagram/download \
+curl -X POST https://minivlad.tail83ea3e.ts.net/instagram/download \
   -H 'Content-Type: application/json' \
   -d '{"url":"https://www.instagram.com/p/DOCCkdVj0Iy/"}'
 
 # Instagram Cookie Validation
-curl -X POST https://minivlad.tail9656d3.ts.net/instagram/cookies/validate
+curl -X POST https://minivlad.tail83ea3e.ts.net/instagram/cookies/validate
 
 # Account Manager RC Check
-curl https://minivlad.tail9656d3.ts.net/check-rc
+curl https://minivlad.tail83ea3e.ts.net/check-rc
 ```
 
 **Expected:** All endpoints respond with appropriate JSON or success status
@@ -198,12 +198,12 @@ cat .env.example
 cd skatehive3.0
 
 # Check Instagram API configuration
-grep -n "minivlad.tail9656d3.ts.net" app/api/instagram-download/route.ts
+grep -n "minivlad.tail83ea3e.ts.net" app/api/instagram-download/route.ts
 grep -n "localhost:6666" app/api/instagram-download/route.ts
 
 # Check Video API configuration  
-grep -n "minivlad.tail9656d3.ts.net" services/videoApiService.ts
-grep -n "minivlad.tail9656d3.ts.net" lib/services/videoConversionAPI.ts
+grep -n "minivlad.tail83ea3e.ts.net" services/videoApiService.ts
+grep -n "minivlad.tail83ea3e.ts.net" lib/services/videoConversionAPI.ts
 
 # Expected: All should reference correct URLs with proper ports
 ```
@@ -425,13 +425,13 @@ cd /Users/vladnikolaev/skatehive-monorepo
 
 # Step 1: Test all services
 echo "Testing Mac Mini M4 services..."
-curl -s https://minivlad.tail9656d3.ts.net/video/healthz | jq
-curl -s https://minivlad.tail9656d3.ts.net/instagram/health | jq
-curl -s https://minivlad.tail9656d3.ts.net/healthz | jq
+curl -s https://minivlad.tail83ea3e.ts.net/video/healthz | jq
+curl -s https://minivlad.tail83ea3e.ts.net/instagram/healthz | jq
+curl -s https://minivlad.tail83ea3e.ts.net/healthz | jq
 
 echo "\nTesting Raspberry Pi services..."
 curl -s https://vladsberry.tail83ea3e.ts.net/video/healthz | jq
-curl -s https://vladsberry.tail83ea3e.ts.net/instagram/health | jq
+curl -s https://vladsberry.tail83ea3e.ts.net/instagram/healthz | jq
 
 echo "\nChecking Docker containers..."
 docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"

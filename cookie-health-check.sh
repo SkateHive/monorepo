@@ -78,7 +78,7 @@ echo "   ❌ Expired: $expired_count cookies" | tee -a "$LOG_FILE"
 # Test service health
 echo "" | tee -a "$LOG_FILE"
 echo "🔍 Service Health Test:" | tee -a "$LOG_FILE"
-response=$(curl -s http://localhost:8000/cookies/status)
+response=$(curl -s http://localhost:6666/cookies/status)
 if echo "$response" | grep -q '"cookies_valid":true'; then
     echo -e "${GREEN}✅ Instagram service: Cookies working${NC}" | tee -a "$LOG_FILE"
 else

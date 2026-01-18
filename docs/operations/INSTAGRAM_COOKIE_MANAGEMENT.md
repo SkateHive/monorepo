@@ -163,10 +163,10 @@ grep -E "(sessionid|csrftoken|ds_user_id)" cookies.txt
 **Option A: Direct Copy** (if you have SSH/local access)
 ```bash
 # Copy to Mac Mini M4
-scp cookies.txt user@minivlad.tail9656d3.ts.net:/path/to/skatehive-monorepo/skatehive-instagram-downloader/ytipfs-worker/cookies/cookies.txt
+scp cookies.txt user@minivlad.tail83ea3e.ts.net:/path/to/skatehive-monorepo/skatehive-instagram-downloader/ytipfs-worker/cookies/cookies.txt
 
 # Set permissions
-ssh user@minivlad.tail9656d3.ts.net "chmod 600 /path/to/cookies/cookies.txt"
+ssh user@minivlad.tail83ea3e.ts.net "chmod 600 /path/to/cookies/cookies.txt"
 ```
 
 **Option B: Setup Script** (automated)
@@ -195,7 +195,7 @@ sleep 3
 #### Step 4: Verify Installation
 ```bash
 # Check cookie status endpoint
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 
 # Expected output:
 # {
@@ -227,7 +227,7 @@ chmod 600 cookies/cookies.txt
 docker-compose up -d
 
 # Verify
-curl http://localhost:8000/cookies/status
+curl http://localhost:6666/cookies/status
 ```
 
 ---
@@ -240,7 +240,7 @@ The leaderboard API automatically monitors cookie status:
 
 ```bash
 # Check overall service status (includes cookie info)
-curl https://minivlad.tail9656d3.ts.net/api/status
+curl https://api.skatehive.app/api/status
 
 # Look for Instagram services:
 {
@@ -265,7 +265,7 @@ curl https://minivlad.tail9656d3.ts.net/api/status
 
 #### Check Cookie Status:
 ```bash
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 ```
 
 **Interpretation:**
@@ -275,7 +275,7 @@ curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
 
 #### Test Download Capability:
 ```bash
-curl -X POST https://minivlad.tail9656d3.ts.net/instagram/download \
+curl -X POST https://minivlad.tail83ea3e.ts.net/instagram/download \
   -H "Content-Type: application/json" \
   -d '{"url": "https://www.instagram.com/reel/test123/"}'
 ```
@@ -316,7 +316,7 @@ cp new-cookies.txt cookies/cookies.txt
 docker-compose restart
 
 # Test
-curl http://localhost:8000/cookies/status
+curl http://localhost:6666/cookies/status
 ```
 
 #### 3. Deploy to Production
@@ -329,10 +329,10 @@ cd /path/to/skatehive-monorepo
 #### 4. Verify Deployment
 ```bash
 # Check status endpoint
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 
 # Verify in monitoring
-curl https://minivlad.tail9656d3.ts.net/api/status | jq '.services[] | select(.category=="Instagram Downloader")'
+curl https://api.skatehive.app/api/status | jq '.services[] | select(.category=="Instagram Downloader")'
 ```
 
 #### 5. Document in Emergency Recovery
@@ -481,7 +481,7 @@ import requests
 import datetime
 
 ENDPOINTS = [
-    "https://minivlad.tail9656d3.ts.net/instagram/cookies/status",
+    "https://minivlad.tail83ea3e.ts.net/instagram/cookies/status",
     "https://vladsberry.tail83ea3e.ts.net/instagram/cookies/status"
 ]
 
@@ -510,7 +510,7 @@ for endpoint in ENDPOINTS:
 #!/bin/bash
 # cookie-refresh-reminder.sh
 
-DAYS_UNTIL_EXPIRY=$(curl -s https://minivlad.tail9656d3.ts.net/instagram/cookies/status | jq -r '.days_until_expiry')
+DAYS_UNTIL_EXPIRY=$(curl -s https://minivlad.tail83ea3e.ts.net/instagram/cookies/status | jq -r '.days_until_expiry')
 
 if [ "$DAYS_UNTIL_EXPIRY" -lt 7 ]; then
     echo "⚠️ Instagram cookies expire in $DAYS_UNTIL_EXPIRY days"
@@ -570,8 +570,8 @@ def render_cookie_status(self):
 
 - [Instagram Downloader README](../../skatehive-instagram-downloader/README.md)
 - [Service Health Monitoring](../../leaderboard-api/README.md#status-endpoint)
-- [Troubleshooting Guide](../../TROUBLESHOOTING_GUIDE.md)
-- [System Architecture](../../ARCHITECTURE.md)
+- [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md)
+- [System Architecture](../architecture/ARCHITECTURE.md)
 
 ---
 

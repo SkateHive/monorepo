@@ -62,8 +62,8 @@ test_endpoint "http://localhost:8081/healthz" "Local Health" "ok"
 test_endpoint "http://$TAILSCALE_URL:8081/healthz" "Tailscale Health" "ok"
 
 echo -e "${BLUE}📱 Instagram Downloader Service (Port $INSTAGRAM_DOWNLOADER_PORT):${NC}"
-test_endpoint "http://localhost:$INSTAGRAM_DOWNLOADER_PORT/health" "Local Health" "status"
-test_endpoint "http://$TAILSCALE_URL:$INSTAGRAM_DOWNLOADER_PORT/health" "Tailscale Health" "status"
+test_endpoint "http://localhost:$INSTAGRAM_DOWNLOADER_PORT/healthz" "Local Health" "status"
+test_endpoint "http://$TAILSCALE_URL:$INSTAGRAM_DOWNLOADER_PORT/healthz" "Tailscale Health" "status"
 
 echo -e "${BLUE}🍪 Instagram Cookie Authentication:${NC}"
 echo -e "${YELLOW}Local Cookie Status:${NC}"
@@ -92,7 +92,7 @@ fi
 echo ""
 
 echo -e "${BLUE}🔍 External Services Check:${NC}"
-test_endpoint "https://skate-insta.onrender.com/health" "Render Service" "status"
+test_endpoint "https://skate-insta.onrender.com/healthz" "Render Service" "status"
 
 echo -e "${BLUE}🧪 Live Download Test (Instagram Reel):${NC}"
 echo "Testing with: https://www.instagram.com/skate_dev/reel/DNw52r3WFU_/"
@@ -100,8 +100,8 @@ echo ""
 
 # Test local Instagram downloader
 echo -e "${YELLOW}Testing Local Instagram Downloader:${NC}"
-echo "   POST http://localhost:8000/download"
-response=$(curl -s --max-time 30 -X POST http://localhost:8000/download \
+echo "   POST http://localhost:6666/download"
+response=$(curl -s --max-time 30 -X POST http://localhost:6666/download \
     -H "Content-Type: application/json" \
     -d '{"url": "https://www.instagram.com/skate_dev/reel/DNw52r3WFU_/"}' 2>/dev/null)
 curl_exit_code=$?
@@ -126,8 +126,8 @@ echo ""
 
 # Test Tailscale Instagram downloader
 echo -e "${YELLOW}Testing Tailscale Instagram Downloader:${NC}"
-echo "   POST http://$TAILSCALE_URL:8000/download"
-response=$(curl -s --max-time 30 -X POST http://$TAILSCALE_URL:8000/download \
+echo "   POST http://$TAILSCALE_URL:$INSTAGRAM_DOWNLOADER_PORT/download"
+response=$(curl -s --max-time 30 -X POST http://$TAILSCALE_URL:$INSTAGRAM_DOWNLOADER_PORT/download \
     -H "Content-Type: application/json" \
     -d '{"url": "https://www.instagram.com/skate_dev/reel/DNw52r3WFU_/"}' 2>/dev/null)
 curl_exit_code=$?

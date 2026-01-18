@@ -85,9 +85,9 @@ Central documentation navigation hub:
 
 ### 2. **Service Testing** ✅
 **All Mac Mini M4 Services Tested:**
-- ✅ Video Transcoder: `https://minivlad.tail9656d3.ts.net/video/healthz` - HTTP 200
-- ✅ Instagram Downloader: `https://minivlad.tail9656d3.ts.net/instagram/health` - HTTP 200 (cookies invalid but service operational)
-- ✅ Account Manager: `https://minivlad.tail9656d3.ts.net/healthz` - HTTP 200
+- ✅ Video Transcoder: `https://minivlad.tail83ea3e.ts.net/video/healthz` - HTTP 200
+- ✅ Instagram Downloader: `https://minivlad.tail83ea3e.ts.net/instagram/healthz` - HTTP 200 (cookies invalid but service operational)
+- ✅ Account Manager: `https://minivlad.tail83ea3e.ts.net/healthz` - HTTP 200
 
 **Docker Container Validation:**
 ```

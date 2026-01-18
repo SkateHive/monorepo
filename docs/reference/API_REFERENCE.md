@@ -27,10 +27,10 @@ SkateHive provides multiple REST APIs for different services. All APIs return JS
 
 | Service | Production URL | Dev URL | Port |
 |---------|---------------|----------|------|
-| Video Transcoder | `https://minivlad.tail9656d3.ts.net/video` | `http://localhost:8081` | 8081:8080 |
-| Instagram Downloader | `https://vladsberry.tail83ea3e.ts.net/instagram` | `http://localhost:8000` | 443(`/instagram`):8000 |
-| Account Manager | `https://minivlad.tail9656d3.ts.net` | `http://localhost:3001` | 3001:3000 |
-| Leaderboard API | `https://your-domain.vercel.app` | `http://localhost:3000` | 3000 |
+| Video Transcoder | `https://minivlad.tail83ea3e.ts.net/video` | `http://localhost:8081` | 8081:8080 |
+| Instagram Downloader | `https://minivlad.tail83ea3e.ts.net/instagram` | `http://localhost:6666` | 6666:8000 |
+| Account Manager | `https://minivlad.tail83ea3e.ts.net` | `http://localhost:3001` | 3001:3000 |
+| Leaderboard API | `https://api.skatehive.app` | `http://localhost:3000` | 3000 |
 
 ---
 
@@ -49,13 +49,13 @@ SkateHive provides multiple REST APIs for different services. All APIs return JS
 ### Instagram Downloader (Internal):
 - **Type:** Cookie-based authentication
 - **Location:** `/app/cookies/cookies.txt` (Netscape format)
-- **Management:** See [Cookie Management Guide](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
+- **Management:** See [Cookie Management Guide](../operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
 
 ---
 
 ## 🎬 Video Transcoder API
 
-**Base URL (Production):** `https://minivlad.tail9656d3.ts.net/video`  
+**Base URL (Production):** `https://minivlad.tail83ea3e.ts.net/video`  
 **Base URL (Development):** `http://localhost:8081`
 
 ---
@@ -69,9 +69,9 @@ Get service health status.
 **Response:**
 ```json
 {
-  "status": "healthy",
-  "uptime": 172800,
-  "version": "1.0.0"
+  "ok": true,
+  "service": "video-worker",
+  "timestamp": "2025-12-05T10:30:00Z"
 }
 ```
 
@@ -81,7 +81,7 @@ Get service health status.
 
 **Example:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
 ```
 
 ---
@@ -95,16 +95,12 @@ Get video processing statistics.
 **Response:**
 ```json
 {
-  "total_processed": 1247,
-  "queue_length": 3,
-  "active_jobs": 1,
-  "failed_jobs": 12,
-  "average_processing_time": 45.2,
-  "disk_usage": {
-    "total": "500GB",
-    "used": "342GB",
-    "available": "158GB"
-  }
+  "total": 1247,
+  "successful": 1210,
+  "failed": 20,
+  "inProgress": 3,
+  "avgDuration": 42800,
+  "successRate": 97
 }
 ```
 
@@ -114,7 +110,7 @@ Get video processing statistics.
 
 **Example:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/video/stats
+curl https://minivlad.tail83ea3e.ts.net/video/stats
 ```
 
 ---
@@ -126,157 +122,111 @@ Get recent processing logs.
 **Endpoint:** `GET /video/logs`
 
 **Query Parameters:**
-- `limit` (optional): Number of log entries (default: 100, max: 1000)
-- `level` (optional): Filter by log level (`info`, `warning`, `error`)
+- `limit` (optional): Number of log entries (default: 10, max: 100)
 
 **Response:**
 ```json
 {
   "logs": [
     {
+      "id": "abc123",
       "timestamp": "2025-12-05T10:30:00Z",
-      "level": "info",
-      "message": "Video processing completed",
-      "job_id": "abc123",
-      "duration": 42.5
+      "user": "creator-name",
+      "filename": "kickflip.mp4",
+      "status": "completed",
+      "duration": 42000,
+      "cid": "bafy...",
+      "clientIP": "203.0.113.10",
+      "platform": "web",
+      "deviceInfo": "desktop/macos/chrome",
+      "node": "macmini"
     }
   ],
-  "total": 1,
-  "limit": 100
+  "stats": {
+    "total": 1247,
+    "successful": 1210,
+    "failed": 20,
+    "inProgress": 3,
+    "avgDuration": 42800,
+    "successRate": 97
+  }
 }
 ```
 
 **Example:**
 ```bash
-curl "https://minivlad.tail9656d3.ts.net/video/logs?limit=50&level=error"
+curl "https://minivlad.tail83ea3e.ts.net/video/logs?limit=5"
 ```
 
 ---
 
-### Upload Video for Transcoding
+### Transcode Video
 
 Upload a video file for processing and IPFS upload.
 
-**Endpoint:** `POST /video/upload`
+**Endpoint:** `POST /video/transcode`
 
 **Content-Type:** `multipart/form-data`
 
-**Parameters:**
-- `file` (required): Video file (MP4, MOV, AVI, etc.)
-- `title` (optional): Video title
-- `description` (optional): Video description
-- `formats` (optional): Comma-separated formats (`hls`, `mp4`, default: both)
+**Parameters (multipart form):**
+- `video` (required): Video file (MP4, MOV, AVI, etc.)
+- `creator` (optional): Creator username
+- `platform` (optional): Client platform (web, mobile, etc.)
+- `deviceInfo` (optional): Client device info string
+- `browserInfo` (optional): Client browser string
+- `userHP` (optional): Hive power if available
+- `correlationId` (optional): Client-provided request ID for SSE progress
+- `viewport` (optional): Client viewport info
+- `connectionType` (optional): Network type info
+- `thumbnail` or `thumbnailUrl` (optional): Preview image URL
 
 **Request:**
 ```bash
-curl -X POST https://minivlad.tail9656d3.ts.net/video/upload \
-  -F "file=@/path/to/video.mp4" \
-  -F "title=My Skate Video" \
-  -F "description=Kickflip compilation" \
-  -F "formats=hls,mp4"
+curl -X POST https://minivlad.tail83ea3e.ts.net/video/transcode   -F "video=@/path/to/video.mp4"   -F "creator=skater123"   -F "platform=web"   -F "correlationId=client-req-123"
 ```
 
 **Response (Success):**
 ```json
 {
-  "success": true,
-  "job_id": "abc123def456",
-  "status": "processing",
-  "estimated_time": 120,
-  "message": "Video uploaded and queued for processing"
-}
-```
-
-**Response (Error):**
-```json
-{
-  "success": false,
-  "error": "File too large (max 2GB)",
-  "code": "FILE_TOO_LARGE"
+  "cid": "bafy...",
+  "gatewayUrl": "https://gateway.pinata.cloud/ipfs/bafy...",
+  "requestId": "client-req-123",
+  "duration": 42000,
+  "creator": "skater123",
+  "timestamp": "2025-12-05T10:31:00Z"
 }
 ```
 
 **Status Codes:**
-- `202 Accepted` - Video queued for processing
 - `400 Bad Request` - Invalid request (missing file, wrong format)
 - `413 Payload Too Large` - File exceeds size limit
 - `500 Internal Server Error` - Processing failed
 
 ---
 
-### Check Job Status
+### Progress Stream
 
-Get status of a transcoding job.
+Subscribe to progress events for an in-flight transcode.
 
-**Endpoint:** `GET /video/job/:jobId`
+**Endpoint:** `GET /video/progress/:requestId`
 
-**Response (Processing):**
-```json
-{
-  "job_id": "abc123def456",
-  "status": "processing",
-  "progress": 45,
-  "current_step": "transcoding",
-  "estimated_time_remaining": 60
-}
-```
-
-**Response (Completed):**
-```json
-{
-  "job_id": "abc123def456",
-  "status": "completed",
-  "progress": 100,
-  "outputs": {
-    "hls": {
-      "cid": "QmXxx...abc",
-      "url": "ipfs://QmXxx...abc/master.m3u8",
-      "size": 45678912
-    },
-    "mp4": {
-      "cid": "QmYyy...def",
-      "url": "ipfs://QmYyy...def/video.mp4",
-      "size": 52341678
-    }
-  },
-  "metadata": {
-    "duration": 125.4,
-    "resolution": "1920x1080",
-    "fps": 30,
-    "codec": "h264"
-  },
-  "processing_time": 142.5
-}
-```
-
-**Response (Failed):**
-```json
-{
-  "job_id": "abc123def456",
-  "status": "failed",
-  "error": "FFmpeg encoding failed",
-  "details": "Invalid video codec"
-}
-```
-
-**Status Values:**
-- `queued` - Waiting for processing
-- `processing` - Currently transcoding
-- `uploading` - Uploading to IPFS
-- `completed` - Successfully processed
-- `failed` - Processing failed
+**Response:** Server-Sent Events (SSE)
 
 **Example:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/video/job/abc123def456
+curl -N https://minivlad.tail83ea3e.ts.net/video/progress/client-req-123
 ```
 
----
+**Event payload example:**
+```
+data: {"progress": 35, "stage": "transcoding"}
+```
+
 
 ## 📸 Instagram Downloader API
 
-**Base URL (Production):** `https://minivlad.tail9656d3.ts.net/instagram`  
-**Base URL (Development):** `http://localhost:8000`
+**Base URL (Production):** `https://minivlad.tail83ea3e.ts.net/instagram`  
+**Base URL (Development):** `http://localhost:6666`
 
 ---
 
@@ -284,18 +234,21 @@ curl https://minivlad.tail9656d3.ts.net/video/job/abc123def456
 
 Get service health and cookie status.
 
-**Endpoint:** `GET /instagram/health`
+**Endpoint:** `GET /instagram/healthz`
 
 **Response:**
 ```json
 {
-  "status": "healthy",
-  "uptime": 259200,
-  "version": "1.0.0",
+  "status": "ok",
+  "timestamp": "2025-12-05T10:35:00Z",
   "authentication": {
+    "cookies_enabled": true,
+    "cookies_exist": true,
     "cookies_valid": true,
-    "cookies_exist": true
-  }
+    "last_validation": "2025-12-05T10:00:00Z",
+    "cookies_path": "/data/instagram_cookies.txt"
+  },
+  "version": "2.0.0"
 }
 ```
 
@@ -305,14 +258,14 @@ Get service health and cookie status.
 
 **Example:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/instagram/health
+curl https://minivlad.tail83ea3e.ts.net/instagram/healthz
 ```
 
 ---
 
 ### Download Instagram Content
 
-Download Instagram post, reel, or story and upload to IPFS.
+Download Instagram content and upload to IPFS.
 
 **Endpoint:** `POST /instagram/download`
 
@@ -321,160 +274,65 @@ Download Instagram post, reel, or story and upload to IPFS.
 **Request Body:**
 ```json
 {
-  "url": "https://www.instagram.com/p/abc123/",
-  "options": {
-    "upload_to_ipfs": true,
-    "include_metadata": true
-  }
+  "url": "https://www.instagram.com/p/abc123/"
 }
 ```
 
 **Parameters:**
 - `url` (required): Instagram post/reel/story URL
-- `options.upload_to_ipfs` (optional): Upload to IPFS (default: true)
-- `options.include_metadata` (optional): Include post metadata (default: true)
 
 **Response (Success):**
 ```json
 {
-  "success": true,
-  "media": [
-    {
-      "type": "video",
-      "url": "https://instagram.com/...",
-      "ipfs_cid": "QmXxx...abc",
-      "ipfs_url": "ipfs://QmXxx...abc",
-      "size": 12345678,
-      "width": 1080,
-      "height": 1920,
-      "duration": 15.5
-    }
-  ],
-  "metadata": {
-    "username": "skater123",
-    "caption": "Kickflip down 10 stair! 🛹",
-    "likes": 1234,
-    "comments": 56,
-    "timestamp": "2025-12-05T10:00:00Z",
-    "hashtags": ["skateboarding", "kickflip"]
-  }
-}
-```
-
-**Response (Error):**
-```json
-{
-  "success": false,
-  "error": "Invalid Instagram cookies",
-  "code": "AUTHENTICATION_FAILED"
+  "status": "ok",
+  "cid": "bafy...",
+  "ipfs_uri": "ipfs://bafy...",
+  "pinata_gateway": "https://ipfs.skatehive.app/ipfs/bafy...",
+  "filename": "instagram_video_ABC123.mp4",
+  "bytes": 14839234,
+  "source_url": "https://www.instagram.com/p/abc123/"
 }
 ```
 
 **Status Codes:**
-- `200 OK` - Content downloaded successfully
-- `400 Bad Request` - Invalid URL
-- `401 Unauthorized` - Invalid or expired cookies
-- `404 Not Found` - Post not found or private
-- `429 Too Many Requests` - Rate limited by Instagram
+- `200 OK` - Download completed
+- `400 Bad Request` - Invalid request
 - `500 Internal Server Error` - Download failed
 
 **Example:**
 ```bash
-curl -X POST https://minivlad.tail9656d3.ts.net/instagram/download \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://www.instagram.com/p/abc123/",
-    "options": {
-      "upload_to_ipfs": true,
-      "include_metadata": true
-    }
-  }'
+curl -X POST https://minivlad.tail83ea3e.ts.net/instagram/download   -H 'content-type: application/json'   -d '{"url":"https://www.instagram.com/p/abc123/"}'
 ```
 
 ---
 
-### Download TikTok Content
+### Cookie Status
 
-Download TikTok video and upload to IPFS.
-
-**Endpoint:** `POST /instagram/download/tiktok`
-
-**Request Body:**
-```json
-{
-  "url": "https://www.tiktok.com/@user/video/123456",
-  "options": {
-    "upload_to_ipfs": true,
-    "no_watermark": true
-  }
-}
-```
-
-**Parameters:**
-- `url` (required): TikTok video URL
-- `options.upload_to_ipfs` (optional): Upload to IPFS (default: true)
-- `options.no_watermark` (optional): Remove TikTok watermark (default: false)
-
-**Response:** Similar to Instagram download
-
----
-
-### Download YouTube Content
-
-Download YouTube video and upload to IPFS.
-
-**Endpoint:** `POST /instagram/download/youtube`
-
-**Request Body:**
-```json
-{
-  "url": "https://www.youtube.com/watch?v=abc123",
-  "options": {
-    "upload_to_ipfs": true,
-    "quality": "1080p"
-  }
-}
-```
-
-**Parameters:**
-- `url` (required): YouTube video URL
-- `options.upload_to_ipfs` (optional): Upload to IPFS (default: true)
-- `options.quality` (optional): Video quality (`360p`, `480p`, `720p`, `1080p`, `best`)
-
-**Response:** Similar to Instagram download
-
----
-
-### Check Cookie Status
-
-Get Instagram cookie validation status.
+Check cookie authentication status.
 
 **Endpoint:** `GET /instagram/cookies/status`
 
 **Response:**
 ```json
 {
+  "cookies_enabled": true,
   "cookies_exist": true,
   "cookies_valid": true,
-  "expires_at": "2026-01-15T00:00:00Z",
-  "days_until_expiry": 41,
-  "last_validated": "2025-12-05T09:00:00Z"
+  "last_validation": "2025-12-05T10:00:00Z",
+  "cookies_path": "/data/instagram_cookies.txt"
 }
 ```
 
-**Status Codes:**
-- `200 OK` - Cookie status retrieved
-
 **Example:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 ```
 
 ---
 
 ### Validate Cookies
 
-Manually trigger cookie validation.
+Force cookie validation.
 
 **Endpoint:** `POST /instagram/cookies/validate`
 
@@ -482,25 +340,20 @@ Manually trigger cookie validation.
 ```json
 {
   "valid": true,
-  "message": "Cookies are valid and working",
-  "tested_at": "2025-12-05T10:30:00Z"
+  "timestamp": "2025-12-05T10:05:00Z",
+  "message": "Cookies are valid"
 }
 ```
 
-**Status Codes:**
-- `200 OK` - Validation successful (may be valid or invalid)
-- `500 Internal Server Error` - Validation failed to run
-
 **Example:**
 ```bash
-curl -X POST https://minivlad.tail9656d3.ts.net/instagram/cookies/validate
+curl -X POST https://minivlad.tail83ea3e.ts.net/instagram/cookies/validate
 ```
 
----
 
 ## 👤 Account Manager API
 
-**Base URL (Production):** `https://minivlad.tail9656d3.ts.net`  
+**Base URL (Production):** `https://minivlad.tail83ea3e.ts.net`  
 **Base URL (Development):** `http://localhost:3001`
 
 ---
@@ -529,7 +382,7 @@ Get service health and RC status.
 
 **Example:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/healthz
+curl https://minivlad.tail83ea3e.ts.net/healthz
 ```
 
 ---
@@ -555,7 +408,7 @@ Get detailed RC (Resource Credits) status.
 
 **Example:**
 ```bash
-curl https://minivlad.tail9656d3.ts.net/rc-status
+curl https://minivlad.tail83ea3e.ts.net/rc-status
 ```
 
 ---
@@ -639,7 +492,7 @@ List available emergency recovery keys.
 
 ## 🏆 Leaderboard API
 
-**Base URL (Production):** `https://your-domain.vercel.app`  
+**Base URL (Production):** `https://api.skatehive.app`  
 **Base URL (Development):** `http://localhost:3000`
 
 ---
@@ -659,7 +512,7 @@ Get comprehensive status of all SkateHive services.
       "id": "macmini-video",
       "name": "Mac Mini Video",
       "category": "Video Transcoder",
-      "url": "https://minivlad.tail9656d3.ts.net/video/healthz",
+      "url": "https://minivlad.tail83ea3e.ts.net/video/healthz",
       "isHealthy": true,
       "responseTime": 45,
       "lastChecked": "2025-12-05T10:29:55Z"
@@ -668,7 +521,7 @@ Get comprehensive status of all SkateHive services.
       "id": "macmini-insta",
       "name": "Mac Mini IG",
       "category": "Instagram Downloader",
-      "url": "https://minivlad.tail9656d3.ts.net/instagram/health",
+      "url": "https://minivlad.tail83ea3e.ts.net/instagram/healthz",
       "isHealthy": true,
       "responseTime": 32,
       "lastChecked": "2025-12-05T10:29:55Z",
@@ -683,7 +536,7 @@ Get comprehensive status of all SkateHive services.
       "id": "macmini-account",
       "name": "Account Manager",
       "category": "Account Manager",
-      "url": "https://minivlad.tail9656d3.ts.net/healthz",
+      "url": "https://minivlad.tail83ea3e.ts.net/healthz",
       "isHealthy": true,
       "responseTime": 28,
       "lastChecked": "2025-12-05T10:29:55Z",
@@ -707,7 +560,7 @@ Get comprehensive status of all SkateHive services.
 
 **Example:**
 ```bash
-curl https://your-domain.vercel.app/api/status | jq
+curl https://api.skatehive.app/api/status | jq
 ```
 
 ---
@@ -721,7 +574,7 @@ Get status for specific service category.
 
 **Example:**
 ```bash
-curl "https://your-domain.vercel.app/api/status?category=Instagram%20Downloader"
+curl "https://api.skatehive.app/api/status?category=Instagram%20Downloader"
 ```
 
 ---
@@ -787,21 +640,9 @@ Instagram applies rate limits based on:
 
 ### Video Transcoder
 
-No explicit rate limits, but resource-constrained:
-- Concurrent jobs: 3 max
-- Queue limit: 50 pending jobs
-- File size limit: 2GB
-
-**Queue Full Response:**
-```json
-{
-  "success": false,
-  "error": "Processing queue is full. Please try again later.",
-  "code": "QUEUE_FULL",
-  "queue_length": 50,
-  "estimated_wait": 3600
-}
-```
+No explicit rate limits enforced in code. Throughput depends on host resources.
+- Large uploads can take several minutes.
+- Keep client concurrency reasonable.
 
 ---
 
@@ -812,10 +653,14 @@ No explicit rate limits, but resource-constrained:
 ```typescript
 // Example service client
 class SkateHiveClient {
-  constructor(private baseUrl: string) {}
+  constructor(
+    private instagramBaseUrl: string,
+    private videoBaseUrl: string,
+    private statusBaseUrl: string
+  ) {}
 
   async downloadInstagram(url: string) {
-    const response = await fetch(`${this.baseUrl}/instagram/download`, {
+    const response = await fetch(`${this.instagramBaseUrl}/download`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
@@ -823,11 +668,11 @@ class SkateHiveClient {
     return response.json();
   }
 
-  async uploadVideo(file: File) {
+  async transcodeVideo(file: File) {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('video', file);
     
-    const response = await fetch(`${this.baseUrl}/video/upload`, {
+    const response = await fetch(`${this.videoBaseUrl}/transcode`, {
       method: 'POST',
       body: formData
     });
@@ -835,13 +680,17 @@ class SkateHiveClient {
   }
 
   async getServiceStatus() {
-    const response = await fetch(`${this.baseUrl}/api/status`);
+    const response = await fetch(`${this.statusBaseUrl}/api/status`);
     return response.json();
   }
 }
 
 // Usage
-const client = new SkateHiveClient('https://minivlad.tail9656d3.ts.net');
+const client = new SkateHiveClient(
+  'https://minivlad.tail83ea3e.ts.net/instagram',
+  'https://minivlad.tail83ea3e.ts.net/video',
+  'https://api.skatehive.app'
+);
 const result = await client.downloadInstagram('https://instagram.com/p/abc123');
 ```
 
@@ -853,31 +702,37 @@ const result = await client.downloadInstagram('https://instagram.com/p/abc123');
 import requests
 
 class SkateHiveClient:
-    def __init__(self, base_url: str):
-        self.base_url = base_url
+    def __init__(self, instagram_base_url: str, video_base_url: str, status_base_url: str):
+        self.instagram_base_url = instagram_base_url
+        self.video_base_url = video_base_url
+        self.status_base_url = status_base_url
     
     def download_instagram(self, url: str):
         response = requests.post(
-            f"{self.base_url}/instagram/download",
+            f"{self.instagram_base_url}/download",
             json={"url": url}
         )
         return response.json()
     
-    def upload_video(self, file_path: str):
+    def transcode_video(self, file_path: str):
         with open(file_path, 'rb') as f:
-            files = {'file': f}
+            files = {'video': f}
             response = requests.post(
-                f"{self.base_url}/video/upload",
+                f\"{self.video_base_url}/transcode\",
                 files=files
             )
         return response.json()
     
     def get_service_status(self):
-        response = requests.get(f"{self.base_url}/api/status")
+        response = requests.get(f"{self.status_base_url}/api/status")
         return response.json()
 
 # Usage
-client = SkateHiveClient("https://minivlad.tail9656d3.ts.net")
+client = SkateHiveClient(
+    "https://minivlad.tail83ea3e.ts.net/instagram",
+    "https://minivlad.tail83ea3e.ts.net/video",
+    "https://api.skatehive.app"
+)
 result = client.download_instagram("https://instagram.com/p/abc123")
 ```
 
@@ -887,38 +742,38 @@ result = client.download_instagram("https://instagram.com/p/abc123")
 
 ```bash
 # Health checks
-curl https://minivlad.tail9656d3.ts.net/video/healthz
-curl https://minivlad.tail9656d3.ts.net/instagram/health
-curl https://minivlad.tail9656d3.ts.net/healthz
+curl https://minivlad.tail83ea3e.ts.net/video/healthz
+curl https://minivlad.tail83ea3e.ts.net/instagram/healthz
+curl https://minivlad.tail83ea3e.ts.net/healthz
 
 # Download Instagram
-curl -X POST https://minivlad.tail9656d3.ts.net/instagram/download \
+curl -X POST https://minivlad.tail83ea3e.ts.net/instagram/download \
   -H "Content-Type: application/json" \
   -d '{"url": "https://instagram.com/p/abc123"}'
 
-# Upload video
-curl -X POST https://minivlad.tail9656d3.ts.net/video/upload \
-  -F "file=@video.mp4" \
-  -F "title=My Video"
+# Transcode video
+curl -X POST https://minivlad.tail83ea3e.ts.net/video/transcode \
+  -F "video=@video.mp4" \
+  -F "creator=skater123"
 
-# Check job status
-curl https://minivlad.tail9656d3.ts.net/video/job/abc123
+# Stream progress
+curl -N https://minivlad.tail83ea3e.ts.net/video/progress/abc123
 
 # Get service status
-curl https://your-domain.vercel.app/api/status
+curl https://api.skatehive.app/api/status
 
 # Check cookie status
-curl https://minivlad.tail9656d3.ts.net/instagram/cookies/status
+curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 ```
 
 ---
 
 ## 📚 Related Documentation
 
-- [System Architecture](./ARCHITECTURE.md)
-- [Infrastructure Operations](./INFRASTRUCTURE_OPERATIONS.md)
-- [Troubleshooting Guide](./TROUBLESHOOTING_GUIDE.md)
-- [Instagram Cookie Management](./docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
+- [System Architecture](../architecture/ARCHITECTURE.md)
+- [Infrastructure Operations](../operations/INFRASTRUCTURE_OPERATIONS.md)
+- [Troubleshooting Guide](../operations/TROUBLESHOOTING_GUIDE.md)
+- [Instagram Cookie Management](../operations/INSTAGRAM_COOKIE_MANAGEMENT.md)
 
 ---
 

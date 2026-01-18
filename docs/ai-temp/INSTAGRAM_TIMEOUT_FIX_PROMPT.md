@@ -8,7 +8,7 @@
 >
 > See current implementation:
 > - Development: Uses `localhost:6666` (correct port)
-> - Production: Uses `minivlad.tail9656d3.ts.net/instagram/download` (Mac Mini M4 primary)
+> - Production: Uses `minivlad.tail83ea3e.ts.net/instagram/download` (Mac Mini M4 primary)
 > - All services tested and working as of December 5, 2025
 
 ---
@@ -23,7 +23,7 @@ The webapp's Instagram health check shows:
   "healthy": true,
   "servers": [
     {
-      "server": "http://vladsberry.tail83ea3e.ts.net:8000",
+      "server": "https://vladsberry.tail83ea3e.ts.net/instagram",
       "healthy": false,
       "error": "Server timeout"
     },
@@ -37,12 +37,12 @@ The webapp's Instagram health check shows:
 ```
 
 ## Root Cause
-The webapp running on `localhost:3000` cannot reach `http://vladsberry.tail83ea3e.ts.net:8000` due to network isolation, but the local Docker service is running perfectly on `localhost:8000`.
+The webapp running on `localhost:3000` cannot reach `https://vladsberry.tail83ea3e.ts.net/instagram` due to network isolation, but the local Docker service is running perfectly on `localhost:6666`.
 
 ## Verified Working Services
-✅ **Local Docker service**: `http://localhost:8000` - Working perfectly with Instagram cookies
+✅ **Local Docker service**: `http://localhost:6666` - Working perfectly with Instagram cookies
 ✅ **Render service**: `https://skate-insta.onrender.com` - Working as backup
-❌ **Tailscale from localhost**: `http://vladsberry.tail83ea3e.ts.net:8000` - Timeout (network isolation)
+❌ **Tailscale from localhost**: `https://vladsberry.tail83ea3e.ts.net/instagram` - Timeout (network isolation)
 
 ## Task: Fix Instagram Service Configuration
 
@@ -60,8 +60,8 @@ const getInstagramAPIs = () => {
   
   return [
     isDevelopment 
-      ? 'http://localhost:8000'                    // Local Docker service
-      : 'http://vladsberry.tail83ea3e.ts.net:8000', // Production Tailscale
+      ? 'http://localhost:6666'                    // Local Docker service
+      : 'https://vladsberry.tail83ea3e.ts.net/instagram', // Production Tailscale
     'https://skate-insta.onrender.com'             // Always as backup
   ];
 };
@@ -74,20 +74,20 @@ Create environment-specific configurations:
 
 **`.env.local` (for development):**
 ```env
-NEXT_PUBLIC_INSTAGRAM_API_PRIMARY=http://localhost:8000
+NEXT_PUBLIC_INSTAGRAM_API_PRIMARY=http://localhost:6666
 NEXT_PUBLIC_INSTAGRAM_API_BACKUP=https://skate-insta.onrender.com
 ```
 
 **`.env.production` (for production):**
 ```env
-NEXT_PUBLIC_INSTAGRAM_API_PRIMARY=http://vladsberry.tail83ea3e.ts.net:8000
+NEXT_PUBLIC_INSTAGRAM_API_PRIMARY=https://vladsberry.tail83ea3e.ts.net/instagram
 NEXT_PUBLIC_INSTAGRAM_API_BACKUP=https://skate-insta.onrender.com
 ```
 
 **In your service file:**
 ```typescript
 export const INSTAGRAM_APIS = [
-  process.env.NEXT_PUBLIC_INSTAGRAM_API_PRIMARY || 'http://localhost:8000',
+  process.env.NEXT_PUBLIC_INSTAGRAM_API_PRIMARY || 'http://localhost:6666',
   process.env.NEXT_PUBLIC_INSTAGRAM_API_BACKUP || 'https://skate-insta.onrender.com'
 ];
 ```
@@ -116,7 +116,7 @@ After the fix, the health check should show:
   "healthy": true,
   "servers": [
     {
-      "server": "http://localhost:8000",
+      "server": "http://localhost:6666",
       "healthy": true,
       "status": 200
     },
@@ -145,8 +145,8 @@ After the fix, the health check should show:
    ```
 
 ### Why This Works
-- **Local development**: Uses `localhost:8000` (Docker service on same machine)
-- **Production deployment**: Uses `vladsberry.tail83ea3e.ts.net:8000` (Tailscale for remote access)
+- **Local development**: Uses `localhost:6666` (Docker service on same machine)
+- **Production deployment**: Uses `vladsberry.tail83ea3e.ts.net/instagram` (Tailscale for remote access)
 - **Always has backup**: Render service provides redundancy
 - **No network isolation**: localhost can always reach localhost
 
@@ -159,7 +159,7 @@ After the fix, the health check should show:
 ## Success Criteria
 - ✅ Instagram health check shows 2 healthy servers
 - ✅ Instagram downloads work without timeouts
-- ✅ Local development uses localhost:8000
+- ✅ Local development uses localhost:6666
 - ✅ Production deployment ready for Tailscale access
 
 ## Context Notes

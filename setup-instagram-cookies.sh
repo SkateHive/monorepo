@@ -13,7 +13,7 @@ CONTAINER_NAME="ytipfs-worker"
 COOKIES_PATH="$MONOREPO_ROOT/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
 
 echo "1. Current cookie status:"
-curl -s http://localhost:8000/cookies/status | jq .
+curl -s http://localhost:6666/cookies/status | jq .
 echo ""
 
 echo "2. Sample cookies file location:"
@@ -27,7 +27,7 @@ if [ -f "$COOKIES_PATH" ]; then
     echo ""
 else
     echo "3. No cookies file found. Trigger creation with a download..."
-    curl -X POST http://localhost:8000/download \
+    curl -X POST http://localhost:6666/download \
          -H "Content-Type: application/json" \
          -d '{"url": "https://www.instagram.com/skate_dev/"}' \
          > /dev/null 2>&1
@@ -46,11 +46,11 @@ echo "   • docker cp your_cookies.txt $CONTAINER_NAME:/data/instagram_cookies.
 echo ""
 
 echo "5. Test validation after adding cookies:"
-echo "   curl -X POST http://localhost:8000/cookies/validate"
+echo "   curl -X POST http://localhost:6666/cookies/validate"
 echo ""
 
 echo "6. Enhanced health check with cookie status:"
-echo "   curl http://localhost:8000/health | jq ."
+echo "   curl http://localhost:6666/healthz | jq ."
 echo ""
 
 echo "📋 Current service status:"
@@ -61,5 +61,5 @@ echo ""
 
 echo "🎯 Next steps:"
 echo "   1. Add real Instagram cookies using one of the methods above"
-echo "   2. Validate cookies: curl -X POST http://localhost:8000/cookies/validate"
+echo "   2. Validate cookies: curl -X POST http://localhost:6666/cookies/validate"
 echo "   3. Test downloads will now use authentication and avoid rate limits"

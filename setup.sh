@@ -350,7 +350,7 @@ configure_node() {
     # Service ports
     echo ""
     VIDEO_TRANSCODER_PORT=$(ask "Video transcoder port" "8081")
-    INSTAGRAM_DOWNLOADER_PORT=$(ask "Instagram downloader port" "8000")
+    INSTAGRAM_DOWNLOADER_PORT=$(ask "Instagram downloader port" "6666")
     
     # Funnel paths
     echo ""
@@ -865,7 +865,7 @@ verify_services() {
     
     # Test Instagram Downloader
     local insta_port="${INSTAGRAM_DOWNLOADER_PORT:-6666}"
-    local insta_response=$(curl -s --max-time 5 "http://localhost:$insta_port/health" 2>/dev/null)
+    local insta_response=$(curl -s --max-time 5 "http://localhost:$insta_port/healthz" 2>/dev/null)
     if echo "$insta_response" | jq -e '.status' &>/dev/null; then
         success "Instagram Downloader API: Responding on port $insta_port"
         
@@ -910,7 +910,7 @@ verify_services() {
         fi
         
         # Test external instagram
-        if curl -s --max-time 10 "https://$TAILSCALE_HOSTNAME$INSTAGRAM_FUNNEL_PATH/health" | jq -e '.status' &>/dev/null; then
+        if curl -s --max-time 10 "https://$TAILSCALE_HOSTNAME$INSTAGRAM_FUNNEL_PATH/healthz" | jq -e '.status' &>/dev/null; then
             success "Instagram (External): https://$TAILSCALE_HOSTNAME$INSTAGRAM_FUNNEL_PATH"
         else
             warn "Instagram (External): Not accessible"
@@ -1130,10 +1130,10 @@ print_summary() {
     echo -e "${BOLD}Service URLs:${NC}"
     if [ -n "$TAILSCALE_HOSTNAME" ]; then
         echo "  Video:     https://$TAILSCALE_HOSTNAME$VIDEO_FUNNEL_PATH/healthz"
-        echo "  Instagram: https://$TAILSCALE_HOSTNAME$INSTAGRAM_FUNNEL_PATH/health"
+        echo "  Instagram: https://$TAILSCALE_HOSTNAME$INSTAGRAM_FUNNEL_PATH/healthz"
     else
         echo "  Video:     http://localhost:$VIDEO_TRANSCODER_PORT/healthz"
-        echo "  Instagram: http://localhost:$INSTAGRAM_DOWNLOADER_PORT/health"
+        echo "  Instagram: http://localhost:$INSTAGRAM_DOWNLOADER_PORT/healthz"
     fi
     echo ""
     echo -e "${CYAN}Thank you for running a SkateHive node! 🛹${NC}"

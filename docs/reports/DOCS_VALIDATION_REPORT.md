@@ -61,7 +61,7 @@
 #### 4. **account-manager/README.md** ✅
 **Status:** Accurate and Comprehensive  
 **Validation:**
-- ✅ Production URL correct: `https://minivlad.tail9656d3.ts.net`
+- ✅ Production URL correct: `https://minivlad.tail83ea3e.ts.net`
 - ✅ Port 3001 confirmed (though documentation says 3000, this is for generic Docker instructions)
 - ✅ Environment variables match `src/config/env.ts` schema
 - ✅ API endpoints documented match actual routes
@@ -103,7 +103,7 @@ const getInstagramServers = () => {
     ];
   } else {
     return [
-      'https://minivlad.tail9656d3.ts.net/instagram/download',  // ✅ Mac Mini primary
+      'https://minivlad.tail83ea3e.ts.net/instagram/download',  // ✅ Mac Mini primary
       'https://vladsberry.tail83ea3e.ts.net/instagram/download',
       'https://skate-insta.onrender.com/download'
     ];
@@ -157,7 +157,7 @@ services:
 ```
 
 **Evidence:**
-- Mac Mini M4 external URL: `https://minivlad.tail9656d3.ts.net/video/transcode` (port 8081)
+- Mac Mini M4 external URL: `https://minivlad.tail83ea3e.ts.net/video/transcode` (port 8081)
 - `docker-compose.yml` confirms: `"8081:8080"`
 - All skatehive3.0 code references port 8081 for Mac Mini
 
@@ -176,7 +176,7 @@ services:
 **A) Port Confusion:**
 ```markdown
 # README says:
-Hit `http://<host-or-tailnet-ip>:8000/health`
+Hit `http://<host-or-tailnet-ip>:6666/healthz`
 ```
 
 **Actual Implementation:**
@@ -187,7 +187,7 @@ ports:
 ```
 
 **Evidence:**
-- Mac Mini M4 URL: `https://minivlad.tail9656d3.ts.net/instagram/download` (external port 6666)
+- Mac Mini M4 URL: `https://minivlad.tail83ea3e.ts.net/instagram/download` (external port 6666)
 - Raspberry Pi URL uses port 6666 externally
 - Internal FastAPI app runs on port 8000, mapped to external 6666
 
@@ -196,7 +196,7 @@ ports:
 - ❌ No cookie refresh procedures
 - ❌ No Instagram authentication troubleshooting
 - ❌ No documentation of cookie expiration monitoring
-- ❌ Missing health check endpoint documentation (`/health`, `/cookies/status`)
+- ❌ Missing health check endpoint documentation (`/healthz`, `/cookies/status`)
 
 **C) Incomplete API Documentation:**
 - Missing `/cookies/validate` endpoint
@@ -206,7 +206,7 @@ ports:
 
 **Recommendation:**
 - Add comprehensive section: "Instagram Cookie Management"
-- Document all API endpoints (not just `/download` and `/health`)
+- Document all API endpoints (not just `/download` and `/healthz`)
 - Add troubleshooting section for common issues
 - Clarify port mapping: external 6666, internal 8000
 - Add cookie refresh workflow documentation
@@ -262,7 +262,7 @@ ports:
   - "8081:8080"  // External:Internal mapping
 
 // Production URL
-https://minivlad.tail9656d3.ts.net/video/transcode  // Port 8081 externally
+https://minivlad.tail83ea3e.ts.net/video/transcode  // Port 8081 externally
 ```
 
 **Documentation Claims:** Port 8080 (❌ Incomplete - should clarify internal vs external)
@@ -280,7 +280,7 @@ ports:
 # External access via port 6666
 
 # Production URL
-https://minivlad.tail9656d3.ts.net/instagram/download  # Port 6666
+https://minivlad.tail83ea3e.ts.net/instagram/download  # Port 6666
 ```
 
 **Documentation Claims:** Port 8000 (❌ Misleading - doesn't explain port mapping)
@@ -297,7 +297,7 @@ PORT: z.string().transform(Number).default('3000')
 Port: 3001  // via environment variable override
 
 // Production URL
-https://minivlad.tail9656d3.ts.net/  // Default port 443, proxied to 3001
+https://minivlad.tail83ea3e.ts.net/  // Default port 443, proxied to 3001
 ```
 
 **Documentation Claims:** Port 3000 (⚠️ Partially correct - needs production port note)
@@ -317,7 +317,7 @@ https://minivlad.tail9656d3.ts.net/  // Default port 443, proxied to 3001
 
 // Production:
 [
-  'https://minivlad.tail9656d3.ts.net/instagram/download',  // Mac Mini M4
+  'https://minivlad.tail83ea3e.ts.net/instagram/download',  // Mac Mini M4
   'https://vladsberry.tail83ea3e.ts.net/instagram/download',  // Raspberry Pi
   'https://skate-insta.onrender.com/download'  // Render fallback
 ]
@@ -347,7 +347,7 @@ https://minivlad.tail9656d3.ts.net/  // Default port 443, proxied to 3001
      └── Instagram Downloader (6666 → 8000)
    
    - Tailscale Mesh Network
-     ├── minivlad.tail9656d3.ts.net (Mac Mini M4)
+     ├── minivlad.tail83ea3e.ts.net (Mac Mini M4)
      ├── vladsberry.tail83ea3e.ts.net (Raspberry Pi)
      └── Funnel public routing
 
@@ -524,7 +524,7 @@ UNIFIED API CATALOG
 3. INSTAGRAM DOWNLOADER APIs
    - POST /download
    - GET /d/<slug>
-   - GET /health
+   - GET /healthz
    - POST /cookies/validate
    - GET /cookies/status
 
