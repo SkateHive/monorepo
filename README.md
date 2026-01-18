@@ -18,43 +18,52 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    SKATEHIVE3.0 (Next.js)                   │
-│              Main Web Application (Vercel)                   │
-│     - User Interface & Content Creation                      │
-│     - Hive Blockchain Integration                            │
-│     - Wallet Management (Hive, Ethereum, Farcaster)          │
+│              Main Web Application (Vercel)                  │
+│     - User Interface & Content Creation                     │
+│     - Hive Blockchain Integration                           │
+│     - Wallet Management (Hive, Ethereum, Farcaster)         │
 └──────────────────┬──────────────────────────────────────────┘
                    │
-        ┌──────────┴──────────┐
-        ▼                     ▼
-┌──────────────────┐  ┌──────────────────┐
-│  Mac Mini M4     │  │  Raspberry Pi    │
-│  (Primary)       │  │  (Secondary)     │
-├──────────────────┤  ├──────────────────┤
-│ Video Transcoder │  │ Video Transcoder │
-│ Instagram DL     │  │ Instagram DL     │
-│ Account Manager  │  │ Monitoring       │
-│ VSC Node         │  │ Cookie Monitor   │
-└────────┬─────────┘  └────────┬─────────┘
-         │                     │
-         └──────────┬──────────┘
-                    ▼
-         ┌─────────────────────┐
-         │   IPFS (Pinata)     │
-         │  Permanent Storage  │
-         └─────────────────────┘
-                    │
-         ┌──────────┴──────────┐
-         ▼                     ▼
-    ┌─────────┐          ┌──────────┐
-    │  Hive   │          │ Ethereum │
-    │Blockchain│          │ Network  │
-    └─────────┘          └──────────┘
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│            SkateHive Services (Distributed Nodes)           │
+│              (Any Server: Cloud, VPS, Self-Hosted)          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌────────────────┐  ┌────────────────┐  ┌──────────────┐   │
+│  │ Video Worker   │  │ Instagram DL   │  │ Oracle Video │   │
+│  │ (Transcoding)  │  │ (Social Media) │  │   Worker     │   │
+│  └────────────────┘  └────────────────┘  └──────────────┘   │
+│                                                             │
+│  ┌────────────────┐  ┌────────────────┐  ┌──────────────┐   │
+│  │ Account Manager│  │   VSC Node     │  │  Monitoring  │   │
+│  │ (Hive Accounts)│  │ (Blockchain)   │  │& Health Chk  │   │
+│  └────────────────┘  └────────────────┘  └──────────────┘   │
+│                                                             │
+│  Example Deployments:                                       │
+│  • Mac Mini M4 (Primary) • Raspberry Pi (Secondary)         │
+│  • Oracle Cloud • Render • Any VPS Provider                 │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+                ┌─────────────────────┐
+                │   IPFS (Pinata)     │
+                │  Permanent Storage  │
+                └─────────────────────┘
+                           │
+                ┌──────────┴──────────┐
+                ▼                     ▼
+           ┌─────────-┐          ┌──────────┐
+           │  Hive    │          │ Ethereum │
+           │Blockchain│          │ Network  │
+           └─────────-┘          └──────────┘
 ```
 
 ### Network Architecture
 - **Tailscale Mesh Network**: Secure peer-to-peer connectivity between all infrastructure nodes
 - **Funnel Public Access**: HTTPS endpoints exposed via Tailscale for external API access
-- **Three-Tier Fallback**: Mac Mini M4 (primary) → Raspberry Pi (secondary) → Render Cloud (tertiary)
+- **Flexible Deployment**: Services can run on any server (cloud VPS, self-hosted, edge devices)
+- **Multi-Tier Fallback**: Primary → Secondary → Cloud backup for high availability
 - **Auto-Recovery**: Power outage resilience with automatic service restart
 
 ## 📁 Repository Structure
@@ -167,19 +176,23 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 - Port: `6666` (host) / `8000` (container)
 - Cookie File: `data/instagram_cookies.txt` (Netscape format)
 - External URL: `https://minivlad.tail83ea3e.ts.net/instagram/download` (primary via Tailscale Funnel)
-- **Blockchain Integration**: Hive blockchain posting, Ethereum/Farcaster protocols
-- **Content Management**: Video uploads, blog posts, community interactions
-- **Skate Mapping**: Interactive maps for skate spot sharing
-- **Community Features**: Bounties, leaderboards, DAO governance
-- **Multi-protocol Support**: Aioha (Hive), Wagmi/Viem (Ethereum), React Query
 
-**Technology Stack:** Next.js 14, TypeScript, Chakra UI, Tailwind CSS, React Query
+---
 
-**Key Integrations:**
-- Backend video processing services
-- IPFS content delivery
-- Multiple blockchain networks
-- Social authentication systems
+### 🎥 **oracle-video-worker/** - Cloud Video Processing Service
+**Node.js video transcoding service** deployed on Oracle Cloud Infrastructure
+
+**Features:**
+- **High Availability**: Cloud-hosted for 24/7 uptime
+- **FFmpeg Processing**: Video optimization and format conversion
+- **IPFS Integration**: Automatic upload to Pinata
+- **Primary Transcoder**: First-tier fallback in the processing chain
+
+**Technology Stack:** Node.js, Express, FFmpeg, Docker
+
+**Configuration:**
+- External URL: `146-235-239-243.sslip.io/transcode`
+- Priority: Primary (tier 1) in failover chain
 
 ## 🔗 Shared Infrastructure
 
@@ -187,44 +200,44 @@ The **webapp (skatehive3.0)** consumes shared backend services:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    SHARED INFRASTRUCTURE                     │
+│                    SHARED INFRASTRUCTURE                    │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌──────────────┐     ┌──────────────┐                     │
-│  │   Webapp     │     │  Mobile App  │                     │
-│  │ (skatehive3.0)     │ (mobileapp)  │                     │
-│  └──────┬───────┘     └──────┬───────┘                     │
+│  ┌──────────────┐     ┌──────────────┐                      │
+│  │   Webapp     │     │  Mobile App  │                      │
+│  │ (skatehive3.0)     │ (mobileapp)  │                      │
+│  └──────┬───────┘     └──────┬───────┘                      │
 │         │                    │                              │
 │         ▼                    ▼                              │
-│  ┌─────────────────────────────────────────┐               │
-│  │     api.skatehive.app (leaderboard-api) │               │
-│  │  • /api/v1/feed, /api/v1/leaderboard   │               │
-│  │  • /api/transcode/status               │               │
-│  └─────────────────────────────────────────┘               │
+│  ┌─────────────────────────────────────────┐                │
+│  │     api.skatehive.app (skatehive-api)   │                │
+│  │  • /api/v1/feed, /api/v1/leaderboard    │                │
+│  │  • /api/transcode/status                │                │
+│  └─────────────────────────────────────────┘                │
 │                      │                                      │
-│         ┌────────────┼────────────┐                        │
-│         ▼            ▼            ▼                        │
-│  ┌───────────┐ ┌───────────┐ ┌───────────┐                │
-│  │  Oracle   │ │ Mac Mini  │ │Raspberry Pi│                │
-│  │ Transcoder│ │ Transcoder│ │ Transcoder │                │
-│  └───────────┘ └───────────┘ └───────────┘                │
-│                      │                                      │
-│                      ▼                                      │
-│  ┌─────────────────────────────────────────┐               │
-│  │         ipfs.skatehive.app              │               │
-│  │         (IPFS Gateway)                  │               │
-│  └─────────────────────────────────────────┘               │
+│         ┌────────────┼────────────┐                         │
+│         ▼            ▼            ▼                         │
+│  ┌───────────┐ ┌───────────┐ ┌───────────-┐                 │
+│  │  Oracle   │ │ Mac Mini  │ │Raspberry Pi│                 │
+│  │ Transcoder│ │ Transcoder│ │ Transcoder │                 │
+│  └───────────┘ └───────────┘ └──────────-─┘                 │
 │                      │                                      │
 │                      ▼                                      │
-│  ┌─────────────────────────────────────────┐               │
-│  │         Hive Blockchain Nodes           │               │
-│  │  • api.deathwing.me, api.hive.blog     │               │
-│  └─────────────────────────────────────────┘               │
+│  ┌─────────────────────────────────────────┐                │
+│  │         ipfs.skatehive.app              │                │
+│  │         (IPFS Gateway)                  │                │
+│  └─────────────────────────────────────────┘                │
+│                      │                                      │
+│                      ▼                                      │
+│  ┌─────────────────────────────────────────┐                │
+│  │         Hive Blockchain Nodes           │                │
+│  │  • api.deathwing.me, api.hive.blog      │                │
+│  └─────────────────────────────────────────┘                │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 🏗️ Backend APIs (leaderboard-api)
+### 🏗️ Backend APIs (skatehive-api)
 
 | Endpoint | Description | Webapp | Mobile |
 |----------|-------------|:------:|:------:|
@@ -344,7 +357,7 @@ cd skatehive-monorepo
 
 # 2. Clone all service repositories
 git clone git@github.com:SkateHive/skatehive3.0.git
-git clone git@github.com:SkateHive/leaderboard-api.git
+git clone git@github.com:sktbrd/skatehive-api.git
 git clone git@github.com:SkateHive/mobileapp.git
 git clone git@github.com:SkateHive/account-manager.git
 git clone git@github.com:SkateHive/skatehive-video-transcoder.git
@@ -380,7 +393,7 @@ echo "📦 Pulling root monorepo..."
 git pull
 
 echo "📦 Pulling all service repositories..."
-for dir in skatehive3.0 leaderboard-api mobileapp account-manager \
+for dir in skatehive3.0 skatehive-api mobileapp account-manager \
            skatehive-video-transcoder skatehive-instagram-downloader \
            skatehive-dashboard skatehive-docs oracle-video-worker vsc-node; do
     if [ -d "$dir/.git" ]; then
