@@ -25,6 +25,7 @@ NC='\033[0m' # No Color
 
 # Tailscale info
 TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "N/A")
+TAILSCALE_URL="${TAILSCALE_HOSTNAME:-$TAILSCALE_IP}"
 
 echo -e "${BLUE}📡 Tailscale Status:${NC}"
 echo "   IP: $TAILSCALE_IP"
