@@ -30,7 +30,7 @@ DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"
 Run anytime to check cookie status:
 
 ```bash
-./skatehive-instagram-downloader/cookie-health-check.sh
+config/scripts/cookie-health-check.sh
 ```
 
 ### View Logs
@@ -51,7 +51,7 @@ launchctl unload ~/Library/LaunchAgents/com.skatehive.cookie-monitor.plist
 
 ## How It Works
 
-1. **Every 6 hours**, launchd runs `skatehive-instagram-downloader/cookie-health-check.sh`
+1. **Every 6 hours**, launchd runs `config/scripts/cookie-health-check.sh`
 2. Script parses cookie file, calculates expiration dates
 3. Tests actual service connectivity at `localhost:6666/cookies/status`
 4. If cookies expire in < 7 days or are expired:
@@ -65,7 +65,7 @@ launchctl unload ~/Library/LaunchAgents/com.skatehive.cookie-monitor.plist
 
 **Simplified:** `health-check.sh` now just calls API endpoints instead of parsing cookies
 
-**Organized:** `cookie-health-check.sh` moved to `skatehive-instagram-downloader/` (service-specific)
+**Organized:** `cookie-health-check.sh` moved to `config/scripts/` (centralized scripts location)
 - Discord alerts
 - Automated scheduling
 - Detailed expiry analysis

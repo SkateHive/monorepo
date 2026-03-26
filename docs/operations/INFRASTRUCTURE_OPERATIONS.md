@@ -742,7 +742,7 @@ docker-compose restart
 docker-compose logs -f
 
 # Health Checks
-./health-check.sh
+config/scripts/health-check.sh
 
 # Monitoring Dashboard
 cd skatehive-dashboard && python3 dashboard.py
@@ -756,7 +756,7 @@ cp /path/to/cookies.txt skatehive-instagram-downloader/ytipfs-worker/data/instag
 docker restart ytipfs-worker
 
 # Or use the health check for detailed status
-./skatehive-instagram-downloader/cookie-health-check.sh
+config/scripts/cookie-health-check.sh
 ```
 
 ---

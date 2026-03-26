@@ -331,7 +331,7 @@ cp new-cookies.txt skatehive-instagram-downloader/ytipfs-worker/data/instagram_c
 docker restart ytipfs-worker
 
 # Verify
-./skatehive-instagram-downloader/cookie-health-check.sh
+config/scripts/cookie-health-check.sh
 ```
 
 #### 4. Verify Deployment
@@ -503,7 +503,7 @@ launchctl list | grep skatehive
 
 **Manual run:**
 ```bash
-./skatehive-instagram-downloader/cookie-health-check.sh
+config/scripts/cookie-health-check.sh
 ```
 
 **Configure Discord alerts (optional):**

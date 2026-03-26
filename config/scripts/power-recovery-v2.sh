@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
+MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 LOG_FILE="$MONOREPO_ROOT/power-recovery.log"
 
 log() {
@@ -63,7 +63,7 @@ start_containers() {
     # Video Transcoder
     if ! docker ps --format '{{.Names}}' | grep -q "video-worker"; then
         log "🎬 Starting video-worker..."
-        cd "$MONOREPO_ROOT/skatehive-video-transcoder"
+        cd "$MONOREPO_ROOT/services/skatehive-video-transcoder"
         docker compose up -d 2>&1 | tee -a "$LOG_FILE" || true
     else
         log "✅ video-worker already running"
@@ -72,7 +72,7 @@ start_containers() {
     # Instagram Downloader
     if ! docker ps --format '{{.Names}}' | grep -q "ytipfs-worker"; then
         log "📸 Starting ytipfs-worker..."
-        cd "$MONOREPO_ROOT/skatehive-instagram-downloader/ytipfs-worker"
+        cd "$MONOREPO_ROOT/services/skatehive-instagram-downloader/ytipfs-worker"
         docker compose up -d 2>&1 | tee -a "$LOG_FILE" || true
     else
         log "✅ ytipfs-worker already running"

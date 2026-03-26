@@ -1064,8 +1064,8 @@ print_summary() {
     fi
     echo ""
     echo -e "${BOLD}Useful Commands:${NC}"
-    echo "  ./health-check.sh          - Check all services"
-    echo "  ./emergency-recovery.sh    - Restart all services"
+    echo "  config/scripts/health-check.sh       - Check all services"
+    echo "  config/scripts/emergency-recovery.sh - Restart all services"
     echo "  docker ps                  - View running containers"
     echo ""
     echo -e "${BOLD}Service URLs:${NC}"

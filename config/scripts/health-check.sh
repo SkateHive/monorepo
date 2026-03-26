@@ -5,7 +5,7 @@
 
 # Auto-detect monorepo root (works from any location)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
+MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 # Load configuration
 source "$MONOREPO_ROOT/load-config.sh"

@@ -6,14 +6,14 @@
 
 # Auto-detect monorepo root (works from any location)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$SCRIPT_DIR}"
+MONOREPO_ROOT="${SKATEHIVE_MONOREPO:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 # Load config for Discord webhook
 if [ -f "$MONOREPO_ROOT/skatehive.config" ]; then
     source "$MONOREPO_ROOT/skatehive.config"
 fi
 
-COOKIE_FILE="$MONOREPO_ROOT/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
+COOKIE_FILE="$MONOREPO_ROOT/services/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
 LOG_FILE="$HOME/cookie-monitor.log"
 ALERT_DAYS=7  # Alert when cookies expire in less than 7 days
 

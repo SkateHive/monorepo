@@ -415,9 +415,9 @@ When adding or updating documentation:
 - [Service Status Dashboard](https://api.skatehive.app/api/status)
 
 ### Tools & Scripts
-- [Health Check Script](./health-check.sh)
-- [Instagram Cookie Monitor](./skatehive-instagram-downloader/cookie-health-check.sh) (automated via launchd)
-- [Emergency Recovery Script](./emergency-recovery.sh)
+- [Health Check Script](./config/scripts/health-check.sh)
+- [Instagram Cookie Monitor](./config/scripts/cookie-health-check.sh) (automated via launchd)
+- [Emergency Recovery Script](./config/scripts/emergency-recovery.sh)
 - [Dashboard Runner](./skatehive-dashboard/run-dashboard.sh)
 
 ### External Resources

@@ -4,7 +4,8 @@
 
 # Load configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/load-config.sh"
+MONOREPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+source "$MONOREPO_ROOT/load-config.sh"
 
 echo "🧪 SkateHive Services Test Script"
 echo "=================================="

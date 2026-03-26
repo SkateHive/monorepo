@@ -1026,7 +1026,7 @@ docker restart <service>
 
 ```bash
 # Comprehensive health check
-./health-check.sh
+config/scripts/health-check.sh
 
 # Check all services
 curl https://api.skatehive.app/api/status | jq
@@ -1099,7 +1099,7 @@ docker-compose logs > logs/debug-$(date +%Y%m%d).log
 3. **Test in isolation** - Does the service work outside Docker?
 4. **Check dependencies** - Are external services (IPFS, Hive) accessible?
 5. **Review documentation** - Might be a known limitation
-6. **Emergency recovery** - See `./emergency-recovery.sh`
+6. **Emergency recovery** - See `config/scripts/emergency-recovery.sh`
 
 ---
 
