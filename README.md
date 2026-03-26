@@ -343,12 +343,11 @@ cd skatehive-monorepo
 mkdir -p apps services
 git clone git@github.com:SkateHive/skatehive3.0.git apps/skatehive3.0
 git clone git@github.com:SkateHive/mobileapp.git apps/mobileapp
-git clone git@github.com:SkateHive/skatehive-dashboard.git apps/skatehive-dashboard
 git clone git@github.com:SkateHive/skatehive-docs.git apps/skatehive-docs
 
 # 3. Clone service repositories
-git clone git@github.com:sktbrd/skatehive-api.git services/skatehive-api
-git clone git@github.com:SkateHive/skatehive-video-transcoder.git services/skatehive-video-transcoder
+git clone git@github.com:SkateHive/skatehive-api.git services/skatehive-api
+git clone git@github.com:SkateHive/video-transcoder.git services/skatehive-video-transcoder
 git clone git@github.com:SkateHive/skatehive-instagram-downloader.git services/skatehive-instagram-downloader
 ```
 
@@ -377,7 +376,7 @@ echo "📦 Pulling root monorepo..."
 git pull
 
 echo "📦 Pulling all service repositories..."
-for dir in apps/skatehive3.0 apps/mobileapp apps/skatehive-dashboard \
+for dir in apps/skatehive3.0 apps/mobileapp \
            apps/skatehive-docs services/skatehive-api \
            services/skatehive-video-transcoder \
            services/skatehive-instagram-downloader; do
@@ -397,7 +396,6 @@ Each service includes its own README with detailed setup instructions:
 1. **Main App**: `cd apps/skatehive3.0 && pnpm install && pnpm dev`
 2. **Video Transcoder**: `cd services/skatehive-video-transcoder && docker compose up -d`
 3. **Instagram Downloader**: `cd services/skatehive-instagram-downloader/ytipfs-worker && docker compose up -d`
-4. **Dashboard**: `cd apps/skatehive-dashboard && python3 dashboard.py`
 
 ### Environment Configuration
 Critical environment variables across services:

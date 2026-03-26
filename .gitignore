@@ -83,7 +83,6 @@ data/*
 # ===================================
 apps/skatehive3.0/
 apps/mobileapp/
-apps/skatehive-dashboard/
 apps/skatehive-docs/
 apps/skatehive-devbot/
 services/skatehive-api/

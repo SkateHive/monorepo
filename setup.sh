@@ -442,11 +442,20 @@ EOF
 SKATEHIVE_REPOS=(
     "apps/skatehive3.0"
     "apps/mobileapp"
-    "apps/skatehive-dashboard"
     "apps/skatehive-docs"
     "services/skatehive-api"
     "services/skatehive-video-transcoder"
     "services/skatehive-instagram-downloader"
+)
+
+# Map directory paths to GitHub clone URLs
+declare -A REPO_URLS=(
+    ["apps/skatehive3.0"]="SkateHive/skatehive3.0"
+    ["apps/mobileapp"]="SkateHive/mobileapp"
+    ["apps/skatehive-docs"]="SkateHive/skatehive-docs"
+    ["services/skatehive-api"]="SkateHive/skatehive-api"
+    ["services/skatehive-video-transcoder"]="SkateHive/video-transcoder"
+    ["services/skatehive-instagram-downloader"]="SkateHive/skatehive-instagram-downloader"
 )
 
 check_repo_status() {
@@ -544,14 +553,21 @@ check_repositories() {
     if [ ${#missing_repos[@]} -gt 0 ]; then
         if ask_yes_no "Clone ${#missing_repos[@]} missing repositories?"; then
             for repo in "${missing_repos[@]}"; do
-                info "Cloning $repo..."
-                if git clone "git@github.com:SkateHive/$repo.git" "$SCRIPT_DIR/$repo" 2>/dev/null; then
+                local github_path="${REPO_URLS[$repo]}"
+                if [ -z "$github_path" ]; then
+                    warn "No URL mapping for $repo — skipping"
+                    continue
+                fi
+                info "Cloning $repo from $github_path..."
+                mkdir -p "$(dirname "$SCRIPT_DIR/$repo")"
+                if git clone "git@github.com:$github_path.git" "$SCRIPT_DIR/$repo" 2>/dev/null; then
                     success "Cloned $repo"
                 else
-                    warn "Failed to clone $repo (may not exist or no SSH access)"
-                    # Try HTTPS as fallback
-                    if git clone "https://github.com/SkateHive/$repo.git" "$SCRIPT_DIR/$repo" 2>/dev/null; then
+                    warn "SSH clone failed, trying HTTPS..."
+                    if git clone "https://github.com/$github_path.git" "$SCRIPT_DIR/$repo" 2>/dev/null; then
                         success "Cloned $repo (via HTTPS)"
+                    else
+                        error "Failed to clone $repo"
                     fi
                 fi
             done
@@ -624,7 +640,7 @@ setup_services() {
             success "Video Transcoder built"
         else
             warn "Video Transcoder directory not found"
-            info "Run: git clone git@github.com:SkateHive/skatehive-video-transcoder.git services/skatehive-video-transcoder"
+            info "Run: git clone git@github.com:SkateHive/video-transcoder.git services/skatehive-video-transcoder"
         fi
     fi
     
