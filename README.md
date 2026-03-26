@@ -31,18 +31,18 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  ┌────────────────┐  ┌────────────────┐  ┌──────────────┐   │
-│  │ Video Worker   │  │ Instagram DL   │  │ Oracle Video │   │
-│  │ (Transcoding)  │  │ (Social Media) │  │   Worker     │   │
+│  │ Video Worker   │  │ Instagram DL   │  │ skatehive-api│   │
+│  │ (Transcoding)  │  │ (Social Media) │  │  (Hive API)  │   │
 │  └────────────────┘  └────────────────┘  └──────────────┘   │
 │                                                             │
-│  ┌────────────────┐  ┌────────────────┐  ┌──────────────┐   │
-│  │ Account Manager│  │   VSC Node     │  │  Monitoring  │   │
-│  │ (Hive Accounts)│  │ (Blockchain)   │  │& Health Chk  │   │
-│  └────────────────┘  └────────────────┘  └──────────────┘   │
+│  ┌────────────────┐  ┌────────────────┐                      │
+│  │  Dashboard     │  │  Mobile App    │                      │
+│  │ (Monitoring)   │  │ (React Native) │                      │
+│  └────────────────┘  └────────────────┘                      │
 │                                                             │
 │  Example Deployments:                                       │
 │  • Mac Mini M4 (Primary) • Raspberry Pi (Secondary)         │
-│  • Oracle Cloud • Render • Any VPS Provider                 │
+│  • Any VPS Provider                                         │
 └──────────────────────────┬──────────────────────────────────┘
                            │
                            ▼
@@ -68,7 +68,7 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 
 ## 📁 Repository Structure
 
-### 🎨 **skatehive3.0/** - Main Web Application
+### 🎨 **apps/skatehive3.0/** - Main Web Application
 **Next.js 15 full-stack application** - The heart of the SkateHive platform
 
 **Key Features:**
@@ -105,7 +105,7 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 - `types/` - TypeScript type definitions
 - `sql/` - Database schemas and migrations
 
-### 🎬 **skatehive-video-transcoder/** - Video Processing Service
+### 🎬 **services/skatehive-video-transcoder/** - Video Processing Service
 **Node.js + FFmpeg service** for video optimization and IPFS upload
 
 **Features:**
@@ -129,7 +129,7 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 - Max Upload: `200MB` (configurable via `MAX_UPLOAD_MB`)
 - External URL: `https://minivlad.tail83ea3e.ts.net/video/transcode`
 
-### 📱 **mobileapp/** - React Native Mobile Application
+### 📱 **apps/mobileapp/** - React Native Mobile Application
 **Expo/React Native app** for iOS and Android - Native mobile experience for SkateHive
 
 **Features:**
@@ -152,7 +152,7 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 
 ---
 
-### 📱 **skatehive-instagram-downloader/** - Social Media Content Service
+### 📱 **services/skatehive-instagram-downloader/** - Social Media Content Service
 **FastAPI service** for downloading Instagram/YouTube content with IPFS storage
 
 **Features:**
@@ -177,23 +177,6 @@ The SkateHive ecosystem operates as a **distributed microservices architecture**
 - Cookie File: `data/instagram_cookies.txt` (Netscape format)
 - External URL: `https://minivlad.tail83ea3e.ts.net/instagram/download` (primary via Tailscale Funnel)
 
----
-
-### 🎥 **oracle-video-worker/** - Cloud Video Processing Service
-**Node.js video transcoding service** deployed on Oracle Cloud Infrastructure
-
-**Features:**
-- **High Availability**: Cloud-hosted for 24/7 uptime
-- **FFmpeg Processing**: Video optimization and format conversion
-- **IPFS Integration**: Automatic upload to Pinata
-- **Primary Transcoder**: First-tier fallback in the processing chain
-
-**Technology Stack:** Node.js, Express, FFmpeg, Docker
-
-**Configuration:**
-- External URL: `146-235-239-243.sslip.io/transcode`
-- Priority: Primary (tier 1) in failover chain
-
 ## 🔗 Shared Infrastructure
 
 The **webapp (skatehive3.0)** consumes shared backend services:
@@ -215,12 +198,12 @@ The **webapp (skatehive3.0)** consumes shared backend services:
 │  │  • /api/transcode/status                │                │
 │  └─────────────────────────────────────────┘                │
 │                      │                                      │
-│         ┌────────────┼────────────┐                         │
-│         ▼            ▼            ▼                         │
-│  ┌───────────┐ ┌───────────┐ ┌───────────-┐                 │
-│  │  Oracle   │ │ Mac Mini  │ │Raspberry Pi│                 │
-│  │ Transcoder│ │ Transcoder│ │ Transcoder │                 │
-│  └───────────┘ └───────────┘ └──────────-─┘                 │
+│         ┌────────────┴────────────┐                         │
+│         ▼                        ▼                         │
+│  ┌──────────────┐         ┌──────────────┐                  │
+│  │  Mac Mini M4 │         │ Raspberry Pi │                  │
+│  │  Transcoder  │         │  Transcoder  │                  │
+│  └──────────────┘         └──────────────┘                  │
 │                      │                                      │
 │                      ▼                                      │
 │  ┌─────────────────────────────────────────┐                │
@@ -253,9 +236,10 @@ The **webapp (skatehive3.0)** consumes shared backend services:
 
 | Service | URL | Priority |
 |---------|-----|:--------:|
-| Oracle (Primary) | `146-235-239-243.sslip.io/transcode` | 1 |
-| Mac Mini M4 (Secondary) | `minivlad.tail83ea3e.ts.net/video/transcode` | 2 |
-| Raspberry Pi (Tertiary) | `vladsberry.tail83ea3e.ts.net/video/transcode` | 3 |
+| Mac Mini M4 (Primary) | `minivlad.tail83ea3e.ts.net/video/transcode` | 1 |
+| Raspberry Pi (Secondary) | `vladsberry.tail83ea3e.ts.net/video/transcode` | 2 |
+
+All servers run the same `skatehive-video-transcoder` codebase. Additional servers can be added by deploying the same service.
 
 ### 🔗 Other Shared Services
 
@@ -355,17 +339,17 @@ This monorepo uses a **hybrid Git structure**: the root folder is a Git reposito
 git clone git@github.com:SkateHive/monorepo.git skatehive-monorepo
 cd skatehive-monorepo
 
-# 2. Clone all service repositories
-git clone git@github.com:SkateHive/skatehive3.0.git
-git clone git@github.com:sktbrd/skatehive-api.git
-git clone git@github.com:SkateHive/mobileapp.git
-git clone git@github.com:SkateHive/account-manager.git
-git clone git@github.com:SkateHive/skatehive-video-transcoder.git
-git clone git@github.com:SkateHive/skatehive-instagram-downloader.git
-git clone git@github.com:SkateHive/skatehive-dashboard.git
-git clone git@github.com:SkateHive/skatehive-docs.git
-git clone git@github.com:SkateHive/oracle-video-worker.git
-git clone git@github.com:SkateHive/vsc-node.git
+# 2. Clone app repositories
+mkdir -p apps services
+git clone git@github.com:SkateHive/skatehive3.0.git apps/skatehive3.0
+git clone git@github.com:SkateHive/mobileapp.git apps/mobileapp
+git clone git@github.com:SkateHive/skatehive-dashboard.git apps/skatehive-dashboard
+git clone git@github.com:SkateHive/skatehive-docs.git apps/skatehive-docs
+
+# 3. Clone service repositories
+git clone git@github.com:sktbrd/skatehive-api.git services/skatehive-api
+git clone git@github.com:SkateHive/skatehive-video-transcoder.git services/skatehive-video-transcoder
+git clone git@github.com:SkateHive/skatehive-instagram-downloader.git services/skatehive-instagram-downloader
 ```
 
 #### Sync Existing Installation (e.g., Raspberry Pi, Mac Mini)
@@ -393,9 +377,10 @@ echo "📦 Pulling root monorepo..."
 git pull
 
 echo "📦 Pulling all service repositories..."
-for dir in skatehive3.0 skatehive-api mobileapp account-manager \
-           skatehive-video-transcoder skatehive-instagram-downloader \
-           skatehive-dashboard skatehive-docs oracle-video-worker vsc-node; do
+for dir in apps/skatehive3.0 apps/mobileapp apps/skatehive-dashboard \
+           apps/skatehive-docs services/skatehive-api \
+           services/skatehive-video-transcoder \
+           services/skatehive-instagram-downloader; do
     if [ -d "$dir/.git" ]; then
         echo "  → $dir"
         (cd "$dir" && git pull)
@@ -409,10 +394,10 @@ Make it executable: `chmod +x pull-all.sh`
 ### Service Setup
 Each service includes its own README with detailed setup instructions:
 
-1. **Dashboard**: `cd skatehive-dashboard && python3 dashboard.py`
-2. **Instagram Downloader**: `cd skatehive-instagram-downloader/ytipfs-worker && docker compose up -d`
-3. **Video Transcoder**: `cd skatehive-video-transcoder && docker build -t video-worker . && docker run -p 8081:8081 video-worker`
-4. **Main App**: `cd skatehive3.0 && pnpm install && pnpm dev`
+1. **Main App**: `cd apps/skatehive3.0 && pnpm install && pnpm dev`
+2. **Video Transcoder**: `cd services/skatehive-video-transcoder && docker compose up -d`
+3. **Instagram Downloader**: `cd services/skatehive-instagram-downloader/ytipfs-worker && docker compose up -d`
+4. **Dashboard**: `cd apps/skatehive-dashboard && python3 dashboard.py`
 
 ### Environment Configuration
 Critical environment variables across services:
@@ -423,7 +408,7 @@ Critical environment variables across services:
 
 ## 🛠️ Development & Deployment
 
-This monorepo is designed for **Raspberry Pi deployment** with:
+This monorepo is designed for **self-hosted deployment** (Mac Mini, Raspberry Pi, cloud VPS) with:
 - Containerized services for easy management
 - Resource-optimized configurations
 - Health monitoring and auto-recovery

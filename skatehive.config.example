@@ -24,7 +24,6 @@ TAILSCALE_HOSTNAME=""
 # =============================================================================
 VIDEO_TRANSCODER_PORT=8081
 INSTAGRAM_DOWNLOADER_PORT=6666
-ACCOUNT_MANAGER_PORT=3001
 
 # =============================================================================
 # TAILSCALE FUNNEL PATHS
@@ -42,7 +41,7 @@ PINATA_JWT=""
 # =============================================================================
 # HIVE BLOCKCHAIN (Optional)
 # =============================================================================
-# Only needed if running account-manager or posting features
+# Only needed for posting features
 HIVE_ACCOUNT=""
 HIVE_POSTING_KEY=""
 

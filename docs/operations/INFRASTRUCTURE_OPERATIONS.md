@@ -26,7 +26,7 @@ This guide covers day-to-day operations for the SkateHive infrastructure, includ
 - **Secondary Host:** Raspberry Pi 5 (vladsberry.tail83ea3e.ts.net)
 - **Container Runtime:** Docker with Docker Compose
 - **Network:** Tailscale mesh with Funnel for public access
-- **Services:** 4 primary services across 2 hosts
+- **Services:** 3 primary services across 2 hosts
 
 ---
 
@@ -46,7 +46,6 @@ docker-compose up -d
 # Or start individual services:
 docker-compose up -d video-worker       # Video Transcoder
 docker-compose up -d ytipfs-worker      # Instagram Downloader
-docker-compose up -d skatehive-account-manager  # Account Manager
 ```
 
 #### Raspberry Pi 5 (Secondary)
@@ -100,7 +99,6 @@ docker ps
 
 # Expected output:
 # CONTAINER ID   IMAGE                          STATUS                      PORTS
-# abc123         skatehive-account-manager      Up 2 days (healthy)        0.0.0.0:3001->3000/tcp
 # def456         video-worker                   Up 2 days (unhealthy)      0.0.0.0:8081->8080/tcp
 # ghi789         ytipfs-worker                  Up 2 days (healthy)        0.0.0.0:6666->8000/tcp
 ```
@@ -112,9 +110,6 @@ curl https://minivlad.tail83ea3e.ts.net/video/healthz
 
 # Instagram Downloader
 curl https://minivlad.tail83ea3e.ts.net/instagram/healthz
-
-# Account Manager
-curl https://minivlad.tail83ea3e.ts.net/healthz
 
 # All services via Status API
 curl https://api.skatehive.app/api/status | jq
@@ -226,59 +221,6 @@ curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 
 ---
 
-### Account Manager Deployment
-
-#### Prerequisites:
-- Valid Hive authority account credentials
-- Sufficient RC in delegation pool (9.3T minimum)
-- Port 3001 available
-- Emergency recovery directory configured
-
-#### Deployment Steps:
-
-```bash
-# 1. Navigate to account-manager
-cd account-manager
-
-# 2. Review configuration
-cat .env  # Ensure RC_AMOUNT, AUTHORITY_ACCOUNT set
-
-# 3. Deploy using script
-./deploy.sh
-
-# Script performs:
-# - Environment validation
-# - Docker build
-# - Container restart
-# - Health check
-# - Log verification
-
-# 4. Verify deployment
-curl https://minivlad.tail83ea3e.ts.net/healthz
-
-# Expected response:
-# {
-#   "status": "healthy",
-#   "rc_balance": 4628000000000,
-#   "rc_required": 9300000000000,
-#   "can_create_accounts": false
-# }
-```
-
-#### Post-Deployment Tasks:
-```bash
-# Check RC balance
-curl https://minivlad.tail83ea3e.ts.net/rc-status
-
-# If insufficient, top up:
-# (Manual process - transfer RC to authority account)
-
-# Verify emergency recovery setup
-ls -la account-manager/emergency-recovery/
-```
-
----
-
 ### Leaderboard API Deployment (Next.js)
 
 #### Prerequisites:
@@ -328,10 +270,9 @@ curl https://api.skatehive.app/api/status
 ### What to Backup:
 
 1. **Instagram Cookies** (Critical - before any changes)
-2. **Account Manager Emergency Keys** (Critical - encrypted JSON files)
-3. **Docker Volumes** (Important - video cache, processing queues)
-4. **Configuration Files** (Important - .env, docker-compose.yml)
-5. **Logs** (Optional - for debugging historical issues)
+2. **Docker Volumes** (Important - video cache, processing queues)
+3. **Configuration Files** (Important - .env, docker-compose.yml)
+4. **Logs** (Optional - for debugging historical issues)
 
 ---
 
@@ -349,10 +290,6 @@ mkdir -p "$BACKUP_DIR"
 # Backup Instagram cookies
 cp /path/to/skatehive-monorepo/skatehive-instagram-downloader/ytipfs-worker/cookies/cookies.txt \
    "$BACKUP_DIR/cookies.txt"
-
-# Backup account manager keys
-cp -r /path/to/skatehive-monorepo/account-manager/emergency-recovery \
-      "$BACKUP_DIR/emergency-recovery"
 
 # Backup docker volumes
 docker run --rm \
@@ -425,25 +362,6 @@ curl https://minivlad.tail83ea3e.ts.net/instagram/cookies/status
 
 ---
 
-#### Restore Account Manager Keys:
-
-```bash
-# Stop service
-docker stop skatehive-account-manager
-
-# Restore emergency recovery directory
-cp -r /backup/skatehive/20251204/emergency-recovery \
-      account-manager/emergency-recovery
-
-# Restart service
-docker start skatehive-account-manager
-
-# Verify keys are accessible
-docker exec skatehive-account-manager ls -la /app/emergency-recovery/
-```
-
----
-
 #### Full Service Restore:
 
 ```bash
@@ -487,7 +405,6 @@ curl https://api.skatehive.app/api/status
 # Serve local services on the tailnet
 sudo tailscale serve --bg --set-path /video http://localhost:8081
 sudo tailscale serve --bg --set-path /instagram http://localhost:6666
-sudo tailscale serve --bg --set-path /healthz http://localhost:3001
 
 # Expose over the internet on 443
 sudo tailscale funnel --bg 443
@@ -548,7 +465,6 @@ Create: `/usr/local/bin/skatehive-health-check.sh`
 SERVICES=(
   "https://minivlad.tail83ea3e.ts.net/video/healthz|Video Transcoder"
   "https://minivlad.tail83ea3e.ts.net/instagram/healthz|Instagram Downloader"
-  "https://minivlad.tail83ea3e.ts.net/healthz|Account Manager"
 )
 
 for service in "${SERVICES[@]}"; do
@@ -748,29 +664,6 @@ docker restart ytipfs-worker
 
 ---
 
-### Account Manager RC Depleted:
-
-```bash
-# 1. Check RC balance
-curl https://minivlad.tail83ea3e.ts.net/rc-status
-
-# Response shows:
-# "rc_balance": 1000000000000  # 1T
-# "rc_required": 9300000000000  # 9.3T
-# "can_create_accounts": false  # ❌
-
-# 2. Top up RC (manual process):
-# - Log into Hive authority account
-# - Delegate additional RC to service account
-# - Wait for RC to propagate (1-2 minutes)
-
-# 3. Verify restoration
-curl https://minivlad.tail83ea3e.ts.net/rc-status
-# "can_create_accounts": true  # ✅
-```
-
----
-
 ### Complete Infrastructure Failure (Mac Mini Down):
 
 #### Failover to Raspberry Pi:
@@ -808,7 +701,6 @@ docker info
 # 2. Check port conflicts
 sudo lsof -i :8081
 sudo lsof -i :6666
-sudo lsof -i :3001
 
 # 3. Check volume mounts
 docker inspect <container_name> | jq '.[].Mounts'

@@ -11,7 +11,7 @@ SkateHive processes user-uploaded videos through a multi-tier transcoding system
 **Key Characteristics:**
 - **No Client Compression**: Videos uploaded at original quality
 - **Server-Side Processing**: FFmpeg transcoding on dedicated workers
-- **Multi-Tier Fallback**: Oracle → Mac Mini M4 → Raspberry Pi
+- **Multi-Tier Fallback**: Mac Mini M4 → Raspberry Pi (additional servers can be added)
 - **Target Format**: H.264/AAC MP4 with HLS streaming support
 - **Distribution**: Pinata IPFS pinning with CDN delivery
 
@@ -25,27 +25,19 @@ User Browser (No Compression)
     Raw Video Upload
          ↓
 ┌────────────────────────────────┐
-│   Priority 1: Oracle Server    │
-│   (146.235.239.243)            │
-│   - Highest priority            │
-│   - Best performance            │
-│   - Primary production server   │
-└────────────────────────────────┘
-         ↓ (if fails)
-┌────────────────────────────────┐
-│  Priority 2: Mac Mini M4       │
+│  Priority 1: Mac Mini M4       │
 │  (minivlad.tail83ea3e.ts.net)  │
+│  - skatehive-video-transcoder   │
 │  - Fast M4 chip processing      │
-│  - Tailscale private network    │
-│  - Secondary/backup server      │
+│  - Primary production server    │
 └────────────────────────────────┘
          ↓ (if fails)
 ┌────────────────────────────────┐
-│  Priority 3: Raspberry Pi      │
+│  Priority 2: Raspberry Pi      │
 │  (vladsberry.tail83ea3e.ts.net)│
-│  - Tertiary fallback            │
-│  - Lower priority               │
-│  - Emergency backup only        │
+│  - skatehive-video-transcoder   │
+│  - Emergency fallback           │
+│  - Lower performance (ARM)      │
 └────────────────────────────────┘
          ↓
     FFmpeg Transcoding
@@ -59,6 +51,10 @@ User Browser (No Compression)
          ↓
   Final IPFS URL returned to user
 ```
+
+> **Note:** All servers run the same `skatehive-video-transcoder` service.
+> Additional servers (e.g., Oracle Cloud, other VPS) can be added to the
+> fallback chain by deploying `skatehive-video-transcoder` on new hardware.
 
 ---
 
@@ -156,10 +152,6 @@ const ffArgs = [
 - 1080p video: ~1-2x realtime (60s video = 60-120s processing)
 - 4K video: ~2-4x realtime (120s video = 240-480s processing)
 
-**Processing Speed (Oracle - Assumed high-performance):**
-- Expected similar or better than Mac Mini M4
-- Primary choice suggests optimal performance
-
 **Processing Speed (Raspberry Pi - ARM Cortex):**
 - 720p video: ~3-5x realtime (slower processing)
 - 1080p video: ~5-10x realtime
@@ -230,29 +222,22 @@ async uploadVideo(video: File, options: VideoUploadOptions) {
 **File:** `skatehive3.0/lib/utils/videoProcessing.ts`
 
 ```typescript
-// Priority 1: Oracle (Primary)
+// Priority 1: Mac Mini M4 (Primary)
 const primaryResult = await tryServer(
-  'https://146-235-239-243.sslip.io/transcode',
-  file, username, 'Oracle (Primary)', enhancedOptions
+  'https://minivlad.tail83ea3e.ts.net/video/transcode',
+  file, username, 'Mac Mini M4 (Primary)', enhancedOptions
 );
 if (primaryResult.success) return primaryResult;
 
-// Priority 2: Mac Mini M4 (Secondary)
+// Priority 2: Raspberry Pi (Fallback)
 const secondaryResult = await tryServer(
-  'https://minivlad.tail83ea3e.ts.net/video/transcode',
-  file, username, 'Mac Mini M4 (Secondary)', enhancedOptions
+  'https://vladsberry.tail83ea3e.ts.net/video/transcode',
+  file, username, 'Raspberry Pi (Fallback)', enhancedOptions
 );
 if (secondaryResult.success) return secondaryResult;
 
-// Priority 3: Raspberry Pi (Tertiary/Fallback)
-const tertiaryResult = await tryServer(
-  'https://vladsberry.tail83ea3e.ts.net/video/transcode',
-  file, username, 'Raspberry Pi (Tertiary)', enhancedOptions
-);
-if (tertiaryResult.success) return tertiaryResult;
-
 // All servers failed - return most informative error
-return tertiaryResult.error || secondaryResult.error || primaryResult.error;
+return secondaryResult.error || primaryResult.error;
 ```
 
 **Timeout per server:** Not explicitly set in code (relies on fetch default)
@@ -262,16 +247,18 @@ return tertiaryResult.error || secondaryResult.error || primaryResult.error;
 
 ## 🏅 Server Comparison
 
-| Feature | Oracle | Mac Mini M4 | Raspberry Pi |
-|---------|--------|-------------|--------------|
-| **Priority** | 1st (Primary) | 2nd (Secondary) | 3rd (Fallback) |
-| **Network** | Public IP | Tailscale (private) | Tailscale (private) |
-| **Performance** | ⭐⭐⭐⭐⭐ High | ⭐⭐⭐⭐ Fast (M4) | ⭐⭐ Slow (ARM) |
-| **Reliability** | ✅ Production | ✅ Stable | ⚠️ Lower uptime |
-| **Use Case** | Primary production | Fast backup | Emergency only |
-| **Typical Speed** | ~1x realtime | ~1-2x realtime | ~5-10x realtime |
-| **Best For** | All videos | Medium/small files | Small files only |
-| **Cost** | Unknown | On-prem (Mac Mini) | On-prem (RPi) |
+All servers run the same `skatehive-video-transcoder` codebase.
+
+| Feature | Mac Mini M4 | Raspberry Pi |
+|---------|-------------|--------------|
+| **Priority** | 1st (Primary) | 2nd (Fallback) |
+| **Network** | Tailscale (private) | Tailscale (private) |
+| **Performance** | ⭐⭐⭐⭐ Fast (M4) | ⭐⭐ Slow (ARM) |
+| **Reliability** | ✅ Stable | ⚠️ Lower uptime |
+| **Use Case** | Primary production | Emergency only |
+| **Typical Speed** | ~1-2x realtime | ~5-10x realtime |
+| **Best For** | All videos | Small files only |
+| **Cost** | On-prem (Mac Mini) | On-prem (RPi) |
 
 ---
 
@@ -476,13 +463,6 @@ curl -X POST https://minivlad.tail83ea3e.ts.net/video/transcode \
   -F "deviceInfo=desktop/macOS/Chrome"
 ```
 
-**Test Oracle Transcoder:**
-```bash
-curl -X POST https://146-235-239-243.sslip.io/transcode \
-  -F "video=@test_video.mp4" \
-  -F "creator=testuser"
-```
-
 **Check Transcoder Health:**
 ```bash
 curl https://minivlad.tail83ea3e.ts.net/video/healthz
@@ -607,7 +587,7 @@ services:
 
 ### For Developers
 
-1. **Always handle all three server fallbacks** in client code
+1. **Always handle all server fallbacks** in client code
 2. **Include correlation IDs** for cross-service request tracking
 3. **Log rich telemetry** (device, browser, network) for analytics
 4. **Implement proper error handling** with user-friendly messages
@@ -615,7 +595,7 @@ services:
 
 ### For Operations
 
-1. **Monitor all three transcoding servers** for health
+1. **Monitor all transcoding servers** for health
 2. **Set up alerts** for high failure rates
 3. **Rotate logs regularly** to prevent disk space issues
 4. **Back up Pinata JWT** and rotate periodically

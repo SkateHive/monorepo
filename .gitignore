@@ -79,15 +79,13 @@ data/*
 
 # ===================================
 # Git Subrepositories (independent repos)
-# These are managed by their own Git repos
+# These are cloned under apps/ and services/
 # ===================================
-account-manager/
-leaderboard-api/
-mobileapp/
-oracle-video-worker/
-skatehive-dashboard/
-skatehive-docs/
-skatehive-instagram-downloader/
-skatehive-video-transcoder/
-skatehive3.0/
-vsc-node/
+apps/skatehive3.0/
+apps/mobileapp/
+apps/skatehive-dashboard/
+apps/skatehive-docs/
+apps/skatehive-devbot/
+services/skatehive-api/
+services/skatehive-video-transcoder/
+services/skatehive-instagram-downloader/

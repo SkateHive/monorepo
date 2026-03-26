@@ -440,16 +440,13 @@ EOF
 
 # List of all SkateHive repositories
 SKATEHIVE_REPOS=(
-    "skatehive3.0"
-    "leaderboard-api"
-    "mobileapp"
-    "account-manager"
-    "skatehive-video-transcoder"
-    "skatehive-instagram-downloader"
-    "skatehive-dashboard"
-    "skatehive-docs"
-    "oracle-video-worker"
-    "vsc-node"
+    "apps/skatehive3.0"
+    "apps/mobileapp"
+    "apps/skatehive-dashboard"
+    "apps/skatehive-docs"
+    "services/skatehive-api"
+    "services/skatehive-video-transcoder"
+    "services/skatehive-instagram-downloader"
 )
 
 check_repo_status() {
@@ -610,11 +607,11 @@ setup_services() {
     
     # Video Transcoder
     if ask_yes_no "Setup Video Transcoder?"; then
-        local transcoder_dir="$SCRIPT_DIR/skatehive-video-transcoder"
+        local transcoder_dir="$SCRIPT_DIR/services/skatehive-video-transcoder"
         if [ -d "$transcoder_dir" ]; then
             info "Building Video Transcoder..."
             cd "$transcoder_dir"
-            
+
             # Create .env if Pinata JWT is set
             if [ -n "$PINATA_JWT" ]; then
                 echo "PINATA_JWT=$PINATA_JWT" > .env
@@ -622,12 +619,12 @@ setup_services() {
             else
                 warn "No Pinata JWT configured - videos won't upload to IPFS"
             fi
-            
+
             docker-compose build
             success "Video Transcoder built"
         else
             warn "Video Transcoder directory not found"
-            info "Run: git clone git@github.com:SkateHive/skatehive-video-transcoder.git"
+            info "Run: git clone git@github.com:SkateHive/skatehive-video-transcoder.git services/skatehive-video-transcoder"
         fi
     fi
     
@@ -635,11 +632,11 @@ setup_services() {
     
     # Instagram Downloader
     if ask_yes_no "Setup Instagram Downloader?"; then
-        local instagram_dir="$SCRIPT_DIR/skatehive-instagram-downloader/ytipfs-worker"
+        local instagram_dir="$SCRIPT_DIR/services/skatehive-instagram-downloader/ytipfs-worker"
         if [ -d "$instagram_dir" ]; then
             info "Building Instagram Downloader..."
             cd "$instagram_dir"
-            
+
             # Create .env if Pinata JWT is set
             if [ -n "$PINATA_JWT" ]; then
                 echo "PINATA_JWT=$PINATA_JWT" > .env
@@ -647,7 +644,7 @@ setup_services() {
             else
                 warn "No Pinata JWT configured - downloads won't upload to IPFS"
             fi
-            
+
             # Check for cookies file
             if [ -f "$instagram_dir/data/instagram_cookies.txt" ]; then
                 success "Instagram cookies file found"
@@ -655,45 +652,16 @@ setup_services() {
                 warn "No Instagram cookies found - downloads may fail"
                 info "See: docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md"
             fi
-            
+
             docker-compose build
             success "Instagram Downloader built"
         else
             warn "Instagram Downloader directory not found"
-            info "Run: git clone git@github.com:SkateHive/skatehive-instagram-downloader.git"
+            info "Run: git clone git@github.com:SkateHive/skatehive-instagram-downloader.git services/skatehive-instagram-downloader"
         fi
     fi
     
-    echo ""
-    
-    # Account Manager
-    if ask_yes_no "Setup Account Manager?"; then
-        local account_dir="$SCRIPT_DIR/account-manager"
-        if [ -d "$account_dir" ]; then
-            info "Building Account Manager..."
-            cd "$account_dir"
-            
-            # Create .env for Account Manager
-            if [ -n "$HIVE_ACCOUNT" ] && [ -n "$HIVE_POSTING_KEY" ]; then
-                cat > .env << EOF
-HIVE_ACCOUNT=$HIVE_ACCOUNT
-HIVE_ACTIVE_KEY=$HIVE_POSTING_KEY
-PORT=3000
-EOF
-                success "Created .env with Hive credentials"
-            else
-                warn "No Hive credentials configured - account creation won't work"
-                info "Run ./setup.sh to configure Hive account"
-            fi
-            
-            docker-compose build 2>/dev/null || docker build -t account-manager .
-            success "Account Manager built"
-        else
-            warn "Account Manager directory not found"
-            info "Run: git clone git@github.com:SkateHive/account-manager.git"
-        fi
-    fi
-    
+
     cd "$SCRIPT_DIR"
 }
 
@@ -761,13 +729,13 @@ start_services() {
     
     if ! ask_yes_no "Start services now?"; then
         info "You can start services later with:"
-        echo "  cd skatehive-video-transcoder && docker-compose up -d"
-        echo "  cd skatehive-instagram-downloader/ytipfs-worker && docker-compose up -d"
+        echo "  cd services/skatehive-video-transcoder && docker-compose up -d"
+        echo "  cd services/skatehive-instagram-downloader/ytipfs-worker && docker-compose up -d"
         return
     fi
     
     # Start Video Transcoder
-    local transcoder_dir="$SCRIPT_DIR/skatehive-video-transcoder"
+    local transcoder_dir="$SCRIPT_DIR/services/skatehive-video-transcoder"
     if [ -f "$transcoder_dir/docker-compose.yml" ]; then
         info "Starting Video Transcoder..."
         cd "$transcoder_dir"
@@ -776,23 +744,12 @@ start_services() {
     fi
     
     # Start Instagram Downloader
-    local instagram_dir="$SCRIPT_DIR/skatehive-instagram-downloader/ytipfs-worker"
+    local instagram_dir="$SCRIPT_DIR/services/skatehive-instagram-downloader/ytipfs-worker"
     if [ -f "$instagram_dir/docker-compose.yml" ]; then
         info "Starting Instagram Downloader..."
         cd "$instagram_dir"
         docker-compose up -d
         success "Instagram Downloader started"
-    fi
-    
-    # Start Account Manager (optional)
-    local account_dir="$SCRIPT_DIR/account-manager"
-    if [ -f "$account_dir/docker-compose.yml" ]; then
-        if ask_yes_no "Start Account Manager?"; then
-            info "Starting Account Manager..."
-            cd "$account_dir"
-            docker-compose up -d
-            success "Account Manager started"
-        fi
     fi
     
     cd "$SCRIPT_DIR"
@@ -841,14 +798,6 @@ verify_services() {
         all_ok=false
     fi
     
-    # Check Account Manager container
-    if docker ps --format "{{.Names}}" 2>/dev/null | grep -q "account-manager"; then
-        local am_status=$(docker ps --filter "name=account-manager" --format "{{.Status}}" 2>/dev/null)
-        success "Account Manager container: $am_status"
-    else
-        warn "Account Manager container: Not running (optional)"
-    fi
-    
     echo ""
     echo -e "${BOLD}Service Health Checks:${NC}"
     echo ""
@@ -886,14 +835,6 @@ verify_services() {
         error "Instagram Downloader API: Not responding on port $insta_port"
         issues+=("instagram_api")
         all_ok=false
-    fi
-    
-    # Test Account Manager (port 3001 external -> 3000 internal)
-    local am_port="${ACCOUNT_MANAGER_PORT:-3001}"
-    if curl -s --max-time 5 "http://localhost:$am_port/healthz" | jq -e '.' &>/dev/null; then
-        success "Account Manager API: Responding on port $am_port"
-    else
-        info "Account Manager API: Not running (optional service)"
     fi
     
     echo ""
@@ -968,10 +909,10 @@ offer_fixes() {
             "video_container")
                 echo -e "${BOLD}Video Transcoder container not running${NC}"
                 if ask_yes_no "  Start Video Transcoder container?"; then
-                    cd "$SCRIPT_DIR/skatehive-video-transcoder" 2>/dev/null && docker-compose up -d && success "  Started!" || error "  Failed to start"
+                    cd "$SCRIPT_DIR/services/skatehive-video-transcoder" 2>/dev/null && docker-compose up -d && success "  Started!" || error "  Failed to start"
                     cd "$SCRIPT_DIR"
                 else
-                    info "  To fix manually: cd skatehive-video-transcoder && docker-compose up -d"
+                    info "  To fix manually: cd services/skatehive-video-transcoder && docker-compose up -d"
                 fi
                 echo ""
                 ;;
@@ -979,10 +920,10 @@ offer_fixes() {
             "instagram_container")
                 echo -e "${BOLD}Instagram Downloader container not running${NC}"
                 if ask_yes_no "  Start Instagram Downloader container?"; then
-                    cd "$SCRIPT_DIR/skatehive-instagram-downloader/ytipfs-worker" 2>/dev/null && docker-compose up -d && success "  Started!" || error "  Failed to start"
+                    cd "$SCRIPT_DIR/services/skatehive-instagram-downloader/ytipfs-worker" 2>/dev/null && docker-compose up -d && success "  Started!" || error "  Failed to start"
                     cd "$SCRIPT_DIR"
                 else
-                    info "  To fix manually: cd skatehive-instagram-downloader/ytipfs-worker && docker-compose up -d"
+                    info "  To fix manually: cd services/skatehive-instagram-downloader/ytipfs-worker && docker-compose up -d"
                 fi
                 echo ""
                 ;;
@@ -1002,7 +943,7 @@ offer_fixes() {
                 echo "    1. Install browser extension: 'Get cookies.txt LOCALLY'"
                 echo "    2. Login to Instagram in your browser"
                 echo "    3. Export cookies using the extension"
-                echo "    4. Copy to: skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
+                echo "    4. Copy to: services/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
                 echo ""
                 info "  Full guide: docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md"
                 echo ""
@@ -1016,7 +957,7 @@ offer_fixes() {
                 echo "    1. Install browser extension: 'Get cookies.txt LOCALLY'"
                 echo "    2. Login to Instagram in your browser"
                 echo "    3. Export cookies using the extension (Netscape format)"
-                echo "    4. Save to: skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
+                echo "    4. Save to: services/skatehive-instagram-downloader/ytipfs-worker/data/instagram_cookies.txt"
                 echo ""
                 info "  Full guide: docs/operations/INSTAGRAM_COOKIE_MANAGEMENT.md"
                 echo ""

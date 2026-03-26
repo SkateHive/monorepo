@@ -1,6 +1,6 @@
 # 🏗️ SkateHive System Architecture
 
-**Last Updated:** December 5, 2025  
+**Last Updated:** March 26, 2026  
 **Status:** Production
 
 ---
@@ -23,12 +23,10 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
 
 ### Core Components:
 1. **Main Application** (Next.js 15) - User-facing web application
-2. **Leaderboard API** (Next.js 15) - Content ranking and status monitoring
+2. **skatehive-api** - Hive blockchain API (leaderboard, profiles, feed)
 3. **Video Transcoder** - Automated video processing pipeline
 4. **Instagram Downloader** - Social media content ingestion
-5. **Account Manager** - Hive blockchain account management
-6. **Monitoring Dashboard** - Real-time service health monitoring
-7. **VSC Node** - Blockchain integration
+5. **Monitoring Dashboard** - Real-time service health monitoring
 
 ---
 
@@ -66,8 +64,6 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
 - **Services:**
   - Video Transcoder (port 8081)
   - Instagram Downloader (port 6666 -> 8000, served via `/instagram` on 443)
-  - Account Manager (port 3001)
-  - VSC Node (port 8080)
 
 #### 🥧 Raspberry Pi 5 (Secondary/Backup)
 - **Tailscale Name:** `vladsberry.tail83ea3e.ts.net`
@@ -87,9 +83,9 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                   │
 │  ┌─────────────────────┐         ┌──────────────────────┐       │
-│  │   skatehive3.0      │         │   leaderboard-api     │       │
-│  │   (Next.js 15)      │◄────────┤   (Next.js 15)        │       │
-│  │   Main App          │         │   Status & Rankings   │       │
+│  │   skatehive3.0      │         │   skatehive-api       │       │
+│  │   (Next.js 15)      │◄────────┤   Hive Blockchain API │       │
+│  │   Main App          │         │   Profiles & Feed     │       │
 │  └─────────────────────┘         └──────────────────────┘       │
 │                                                                   │
 └───────────────────────────┬──────────────────────────────────────┘
@@ -108,12 +104,12 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
 │                       Service Layer                               │
 ├──────────────────────────────────────────────────────────────────┤
 │                                                                   │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌────────────────┐ │
-│  │ Video Transcoder │  │ Instagram        │  │ Account        │ │
-│  │ (Node.js/TS)    │  │ Downloader       │  │ Manager        │ │
-│  │                  │  │ (FastAPI/Python) │  │ (Node.js/TS)   │ │
-│  │ Port: 8081:8080  │  │ Port: 6666:8000  │  │ Port: 3001:3000│ │
-│  └──────────────────┘  └──────────────────┘  └────────────────┘ │
+│  ┌──────────────────┐  ┌──────────────────┐                     │
+│  │ Video Transcoder │  │ Instagram        │                     │
+│  │ (Node.js/TS)    │  │ Downloader       │                     │
+│  │                  │  │ (FastAPI/Python) │                     │
+│  │ Port: 8081:8080  │  │ Port: 6666:8000  │                     │
+│  └──────────────────┘  └──────────────────┘                     │
 │                                                                   │
 └───────────────────────────┬──────────────────────────────────────┘
                             │
@@ -123,7 +119,7 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
 │                                                                   │
 │  ┌──────────────┐  ┌────────────────┐  ┌──────────────────────┐ │
 │  │ Local FS     │  │ IPFS Network   │  │ Hive Blockchain      │ │
-│  │ (Video Cache)│  │ (Distributed)  │  │ (VSC Node)           │ │
+│  │ (Video Cache)│  │ (Distributed)  │  │ (API Nodes)          │ │
 │  └──────────────┘  └────────────────┘  └──────────────────────┘ │
 │                                                                   │
 └──────────────────────────────────────────────────────────────────┘
@@ -154,26 +150,15 @@ SkateHive is a decentralized social media platform for skateboarders, built as a
   - Metadata extraction
   - Expiration monitoring
 
-#### 👤 Account Manager
-- **Technology:** Node.js, TypeScript
-- **Purpose:** Hive blockchain account creation/management
-- **Container:** `skatehive-account-manager`
-- **Health Endpoint:** `/healthz`
-- **Key Features:**
-  - Account creation with RC delegation
-  - Key generation and encryption
-  - Emergency recovery system
-  - Authority management
-
-#### 🏆 Leaderboard API
+#### 🏆 skatehive-api
 - **Technology:** Next.js 15, TypeScript
-- **Purpose:** Content ranking and service monitoring
+- **Purpose:** Hive blockchain API (leaderboard, profiles, feed)
 - **Status Endpoint:** `/api/status`
 - **Key Features:**
+  - Leaderboard and content ranking
+  - User profiles and feed aggregation
   - Multi-service health aggregation
-  - Cookie monitoring for Instagram services
   - Real-time status reporting
-  - Error tracking
 
 #### 📊 Monitoring Dashboard
 - **Technology:** Python, Textual TUI
@@ -197,8 +182,7 @@ Internet
    │      │
    │      ├─► minivlad.tail83ea3e.ts.net
    │      │     ├─► /video/* → localhost:8081
-   │      │     ├─► /instagram/* → localhost:6666
-   │      │     └─► /healthz → localhost:3001
+   │      │     └─► /instagram/* → localhost:6666
    │      │
    │      └─► vladsberry.tail83ea3e.ts.net
    │            ├─► /video/* → localhost:8081
@@ -231,8 +215,6 @@ Internet
 |---------|--------------|---------------|----------------|----------|
 | Video Transcoder | 8081 | 8080 | video-worker | HTTP |
 | Instagram Downloader | 443 (`/instagram`) | 6666 → 8000 | ytipfs-worker | HTTP |
-| Account Manager | 3001 | 3000 | skatehive-account-manager | HTTP |
-| VSC Node | 8080 | 8080 | (direct) | HTTP |
 
 ### Raspberry Pi 5 (Secondary)
 
@@ -242,9 +224,8 @@ Internet
 | Instagram Downloader | 443 (`/instagram`) | 6666 → 8000 | ✅ Active |
 
 ### Port Selection Rationale:
-- **8081 (Video):** Avoids conflict with VSC node on 8080
+- **8081 (Video):** Standard port for video transcoder service
 - **6666 → 8000 (Instagram):** Host port 6666 maps to FastAPI 8000, exposed via HTTPS `/instagram`
-- **3001 (Account):** Avoids conflict with Next.js dev default (3000)
 
 ---
 
@@ -256,8 +237,7 @@ Internet
 │   (Main App)        │
 └──────────┬──────────┘
            │
-           ├──► Leaderboard API (rankings)
-           ├──► Account Manager (signup)
+           ├──► skatehive-api (rankings, profiles, feed)
            ├──► Video Transcoder (uploads)
            └──► Instagram Downloader (content)
                       │
@@ -276,14 +256,9 @@ Internet
 │  ├─► IPFS Network (storage)                 │
 │  └─► Local Storage (temp)                   │
 │                                             │
-│  Account Manager                            │
-│  ├─► Hive Blockchain (API)                  │
-│  ├─► RC Delegation Pool (resource credits)  │
-│  └─► Local Storage (encrypted keys)         │
-│                                             │
-│  Leaderboard API                            │
-│  ├─► All Service Health Endpoints           │
-│  └─► Hive Blockchain (content data)         │
+│  skatehive-api                              │
+│  ├─► Hive Blockchain (content data)         │
+│  └─► All Service Health Endpoints           │
 │                                             │
 └─────────────────────────────────────────────┘
 ```
@@ -291,8 +266,7 @@ Internet
 ### Critical Dependencies:
 1. **IPFS Network** - Required for video and Instagram services
 2. **Instagram Cookies** - Required for Instagram downloads
-3. **RC Pool** - Required for account creation (9.3T minimum)
-4. **Tailscale Network** - Required for all inter-service communication
+3. **Tailscale Network** - Required for all inter-service communication
 
 ---
 
@@ -341,27 +315,6 @@ Instagram Downloader (/download)
     └─► Return to Caller
 ```
 
-### Account Creation Flow:
-```
-Signup Form (skatehive3.0)
-    │
-    ▼
-Account Manager (/create)
-    │
-    ├─► Generate Keys
-    │       │
-    │       └─► Encrypt & Store
-    │
-    ├─► Hive Blockchain
-    │       │
-    │       ├─► Create Account
-    │       └─► Delegate RC (9.3T)
-    │
-    └─► Return Credentials
-            │
-            └─► User Login
-```
-
 ---
 
 ## 🔒 Security Architecture
@@ -394,13 +347,8 @@ Account Manager (/create)
 │  └─► /cookies/cookies.txt          │
 │      (Netscape format)              │
 │                                     │
-│  Account Manager Keys               │
-│  └─► emergency-recovery/*.json     │
-│      (AES-256 encrypted)            │
-│                                     │
 │  Environment Variables              │
 │  └─► Docker Compose secrets        │
-│      (RC_AMOUNT, AUTHORITY_ACCOUNT) │
 │                                     │
 └─────────────────────────────────────┘
 ```
@@ -419,14 +367,12 @@ Account Manager (/create)
 ### Current Limitations:
 1. **Single Host Processing** - Mac Mini M4 handles all production load
 2. **Instagram Cookie Single-Point-of-Failure** - One cookie for all requests
-3. **RC Pool Depletion** - Limited account creation capacity (4.6T current)
-4. **Local Storage** - Video cache on single host filesystem
+3. **Local Storage** - Video cache on single host filesystem
 
 ### Scale-Out Strategy:
 1. **Multi-Host Load Balancing** - Raspberry Pi as active secondary
 2. **Cookie Rotation** - Multiple Instagram accounts
-3. **RC Pool Monitoring** - Auto-top-up system
-4. **Distributed Storage** - IPFS cluster for cache
+3. **Distributed Storage** - IPFS cluster for cache
 
 ---
 
@@ -443,7 +389,7 @@ Account Manager (/create)
 4. Services restart on new host
 
 ### Health Monitoring:
-- Leaderboard API polls all services every 30s
+- skatehive-api polls all services every 30s
 - Dashboard provides real-time TUI monitoring
 - Cookie expiration tracked automatically
 
@@ -459,5 +405,5 @@ Account Manager (/create)
 ---
 
 **Document Status:** ✅ Complete  
-**Next Review:** January 5, 2026  
+**Next Review:** June 26, 2026  
 **Maintainer:** SkateHive DevOps Team
