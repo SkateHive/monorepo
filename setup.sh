@@ -449,14 +449,18 @@ SKATEHIVE_REPOS=(
 )
 
 # Map directory paths to GitHub clone URLs
-declare -A REPO_URLS=(
-    ["apps/skatehive3.0"]="SkateHive/skatehive3.0"
-    ["apps/mobileapp"]="SkateHive/mobileapp"
-    ["apps/skatehive-docs"]="SkateHive/skatehive-docs"
-    ["services/skatehive-api"]="SkateHive/skatehive-api"
-    ["services/skatehive-video-transcoder"]="SkateHive/video-transcoder"
-    ["services/skatehive-instagram-downloader"]="SkateHive/skatehive-instagram-downloader"
-)
+# NOTE: Uses a function instead of declare -A for bash 3.2 (macOS default) compatibility
+get_repo_url() {
+    case "$1" in
+        "apps/skatehive3.0") echo "SkateHive/skatehive3.0" ;;
+        "apps/mobileapp") echo "SkateHive/mobileapp" ;;
+        "apps/skatehive-docs") echo "SkateHive/skatehive-docs" ;;
+        "services/skatehive-api") echo "SkateHive/skatehive-api" ;;
+        "services/skatehive-video-transcoder") echo "SkateHive/video-transcoder" ;;
+        "services/skatehive-instagram-downloader") echo "SkateHive/skatehive-instagram-downloader" ;;
+        *) echo "" ;;
+    esac
+}
 
 check_repo_status() {
     local repo_dir="$1"
@@ -553,7 +557,7 @@ check_repositories() {
     if [ ${#missing_repos[@]} -gt 0 ]; then
         if ask_yes_no "Clone ${#missing_repos[@]} missing repositories?"; then
             for repo in "${missing_repos[@]}"; do
-                local github_path="${REPO_URLS[$repo]}"
+                local github_path="$(get_repo_url "$repo")"
                 if [ -z "$github_path" ]; then
                     warn "No URL mapping for $repo — skipping"
                     continue

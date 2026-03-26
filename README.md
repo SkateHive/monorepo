@@ -318,84 +318,94 @@ User Uploads ──────────────────────�
 All Services ←─────────── Dashboard Monitoring ←─────────── Main App (skatehive3.0)
 ```
 
-## 🚀 Quick Start
+## 🚀 New Contributor? Start Here
 
-### Prerequisites
-- Docker & Docker Compose
-- Python 3.8+ (for dashboard)
-- Node.js 18+ (for main app)
-- pnpm (`npm install -g pnpm`)
-- Pinata account with JWT token
-- Git with SSH key configured for GitHub
-
-### 🔧 Assembling the Monorepo Locally
-
-This monorepo uses a **hybrid Git structure**: the root folder is a Git repository that tracks documentation and scripts, while each service subdirectory is an independent Git repository.
-
-#### Fresh Clone (New Machine)
+This is a **hybrid monorepo** — the root tracks docs, scripts, and config, while each app/service lives in its own Git repository. The setup script handles everything for you.
 
 ```bash
-# 1. Clone the root monorepo
+# 1. Clone this repo
 git clone git@github.com:SkateHive/monorepo.git skatehive-monorepo
 cd skatehive-monorepo
 
-# 2. Clone app repositories
+# 2. Run the interactive setup (clones all repos, installs deps, configures services)
+./setup.sh
+```
+
+That's it. The setup wizard will:
+1. **Check dependencies** — git, docker, node, pnpm, etc.
+2. **Configure your node** — name, role, ports, API keys
+3. **Clone all 6 repositories** into `apps/` and `services/` (SSH with HTTPS fallback)
+4. **Build services** — video transcoder, instagram downloader (Docker)
+5. **Setup networking** — Tailscale Funnel (optional)
+6. **Configure auto-start** — power recovery scripts (optional)
+
+### Prerequisites
+
+You'll need these installed before running `./setup.sh` (the script will tell you what's missing):
+- Git
+- Docker & Docker Compose
+- Node.js 18+
+- pnpm (`npm install -g pnpm`)
+
+Optional (the script will skip if not present):
+- Tailscale (for mesh networking between nodes)
+- Pinata account with JWT token (for IPFS uploads)
+
+### What gets cloned
+
+| Directory | Repository | Description |
+|-----------|-----------|-------------|
+| `apps/skatehive3.0/` | [SkateHive/skatehive3.0](https://github.com/SkateHive/skatehive3.0) | Next.js web app |
+| `apps/mobileapp/` | [SkateHive/mobileapp](https://github.com/SkateHive/mobileapp) | React Native mobile app |
+| `apps/skatehive-docs/` | [SkateHive/skatehive-docs](https://github.com/SkateHive/skatehive-docs) | Documentation site |
+| `services/skatehive-api/` | [SkateHive/skatehive-api](https://github.com/SkateHive/skatehive-api) | Backend API |
+| `services/skatehive-video-transcoder/` | [SkateHive/video-transcoder](https://github.com/SkateHive/video-transcoder) | FFmpeg video processing |
+| `services/skatehive-instagram-downloader/` | [SkateHive/skatehive-instagram-downloader](https://github.com/SkateHive/skatehive-instagram-downloader) | Social media downloader |
+
+These directories are git-ignored by the root repo — each has its own independent git history.
+
+### Running individual services after setup
+
+```bash
+# Web app (development)
+cd apps/skatehive3.0 && pnpm install && pnpm dev
+
+# Video transcoder (Docker)
+cd services/skatehive-video-transcoder && docker compose up -d
+
+# Instagram downloader (Docker)
+cd services/skatehive-instagram-downloader/ytipfs-worker && docker compose up -d
+```
+
+### Manual clone (if you prefer not to use setup.sh)
+
+<details>
+<summary>Click to expand manual setup instructions</summary>
+
+```bash
+git clone git@github.com:SkateHive/monorepo.git skatehive-monorepo
+cd skatehive-monorepo
+
 mkdir -p apps services
 git clone git@github.com:SkateHive/skatehive3.0.git apps/skatehive3.0
 git clone git@github.com:SkateHive/mobileapp.git apps/mobileapp
 git clone git@github.com:SkateHive/skatehive-docs.git apps/skatehive-docs
-
-# 3. Clone service repositories
 git clone git@github.com:SkateHive/skatehive-api.git services/skatehive-api
 git clone git@github.com:SkateHive/video-transcoder.git services/skatehive-video-transcoder
 git clone git@github.com:SkateHive/skatehive-instagram-downloader.git services/skatehive-instagram-downloader
 ```
 
-#### Sync Existing Installation (e.g., Raspberry Pi, Mac Mini)
-
-If you already have the folder structure with service repos but the root isn't tracked:
-
+Then copy and edit the config:
 ```bash
-cd ~/skatehive-monorepo
-
-# Initialize root repo and sync with GitHub
-git init
-git remote add origin git@github.com:SkateHive/monorepo.git
-git fetch origin
-git reset --hard origin/main
+cp skatehive.config.example skatehive.config
+# Edit skatehive.config with your values
 ```
 
-#### Pull All Repositories
+</details>
 
-Create a helper script to update everything at once:
+### Syncing an existing installation
 
-```bash
-# Save as: ~/skatehive-monorepo/pull-all.sh
-#!/bin/bash
-echo "📦 Pulling root monorepo..."
-git pull
-
-echo "📦 Pulling all service repositories..."
-for dir in apps/skatehive3.0 apps/mobileapp \
-           apps/skatehive-docs services/skatehive-api \
-           services/skatehive-video-transcoder \
-           services/skatehive-instagram-downloader; do
-    if [ -d "$dir/.git" ]; then
-        echo "  → $dir"
-        (cd "$dir" && git pull)
-    fi
-done
-echo "✅ All repositories updated!"
-```
-
-Make it executable: `chmod +x pull-all.sh`
-
-### Service Setup
-Each service includes its own README with detailed setup instructions:
-
-1. **Main App**: `cd apps/skatehive3.0 && pnpm install && pnpm dev`
-2. **Video Transcoder**: `cd services/skatehive-video-transcoder && docker compose up -d`
-3. **Instagram Downloader**: `cd services/skatehive-instagram-downloader/ytipfs-worker && docker compose up -d`
+If you already have the repos cloned, just run `./setup.sh` again — it detects existing repos and offers to update them instead of re-cloning.
 
 ### Environment Configuration
 Critical environment variables across services:
