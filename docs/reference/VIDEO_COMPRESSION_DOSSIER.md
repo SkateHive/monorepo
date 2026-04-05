@@ -11,8 +11,8 @@ SkateHive processes user-uploaded videos through a multi-tier transcoding system
 **Key Characteristics:**
 - **No Client Compression**: Videos uploaded at original quality
 - **Server-Side Processing**: FFmpeg transcoding on dedicated workers
-- **Multi-Tier Fallback**: Mac Mini M4 → Raspberry Pi (additional servers can be added)
-- **Target Format**: H.264/AAC MP4 with HLS streaming support
+- **Multi-Tier Fallback**: Mac Mini M4 → Oracle Cloud → Raspberry Pi
+- **Target Format**: H.264/AAC/yuv420p MP4 with faststart streaming
 - **Distribution**: Pinata IPFS pinning with CDN delivery
 
 ---
@@ -20,7 +20,7 @@ SkateHive processes user-uploaded videos through a multi-tier transcoding system
 ## 🏗️ Architecture Overview
 
 ```
-User Browser (No Compression)
+User Browser / Mobile App (No Compression)
          ↓
     Raw Video Upload
          ↓
@@ -33,10 +33,17 @@ User Browser (No Compression)
 └────────────────────────────────┘
          ↓ (if fails)
 ┌────────────────────────────────┐
-│  Priority 2: Raspberry Pi      │
+│  Priority 2: Oracle Cloud      │
+│  (transcode.skatehive.app)     │
+│  - skatehive-video-transcoder   │
+│  - Cloud VPS fallback           │
+└────────────────────────────────┘
+         ↓ (if fails)
+┌────────────────────────────────┐
+│  Priority 3: Raspberry Pi      │
 │  (vladsberry.tail83ea3e.ts.net)│
 │  - skatehive-video-transcoder   │
-│  - Emergency fallback           │
+│  - Last-resort fallback         │
 │  - Lower performance (ARM)      │
 └────────────────────────────────┘
          ↓
@@ -52,9 +59,9 @@ User Browser (No Compression)
   Final IPFS URL returned to user
 ```
 
-> **Note:** All servers run the same `skatehive-video-transcoder` service.
-> Additional servers (e.g., Oracle Cloud, other VPS) can be added to the
-> fallback chain by deploying `skatehive-video-transcoder` on new hardware.
+> **Note:** All three servers run the same `skatehive-video-transcoder` service.
+> Service discovery is handled by `skatehive-api` at `GET /api/transcode/status`,
+> which health-checks all nodes and returns the best available URL.
 
 ---
 
@@ -69,8 +76,12 @@ const ffArgs = [
   '-y',                                          // Overwrite output
   '-i', inputPath,                               // Input file
   '-c:v', 'libx264',                            // Video codec: H.264
-  '-preset', process.env.X264_PRESET || 'veryfast',  // Encoding speed
-  '-crf', process.env.X264_CRF || '22',         // Quality (0-51, lower = better)
+  '-preset', process.env.X264_PRESET || 'medium',   // Encoding speed (default: medium)
+  '-crf', crf,                                  // Adaptive: 20 (short) / 22 (default) / 24 (long/large)
+  '-vf', 'scale=min(iw\\,1920):min(ih\\,1080):force_original_aspect_ratio=decrease', // Cap to 1080p
+  '-maxrate', '5M',                             // Peak bitrate cap
+  '-bufsize', '10M',                            // VBV buffer
+  '-pix_fmt', 'yuv420p',                        // 8-bit 4:2:0 — required for mobile hardware decode
   '-c:a', 'aac',                                // Audio codec: AAC
   '-b:a', process.env.AAC_BITRATE || '128k',    // Audio bitrate
   '-movflags', '+faststart',                     // Enable streaming before download complete
@@ -89,15 +100,14 @@ const ffArgs = [
 
 #### Encoding Parameters
 
-**Preset: `veryfast` (default)**
+**Preset: `medium` (default)**
 - **Options**: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
-- **Current Setting**: `veryfast`
+- **Current Setting**: `medium` (configurable via `X264_PRESET` env var)
 - **Characteristics**:
-  - Fast encoding speed (important for user experience)
-  - Moderate file size
-  - Good quality/speed balance
-  - ~3-5x faster than `medium` preset
-- **Trade-off**: Slightly larger files than `slow/slower` presets
+  - Balanced encoding speed vs file size
+  - Good compression efficiency
+  - Suitable for server-side transcoding where speed is less critical than output quality
+- **Trade-off**: Slower than `veryfast` but produces smaller, better-compressed files
 
 **CRF (Constant Rate Factor): `22` (default)**
 - **Range**: 0-51
@@ -130,7 +140,7 @@ const ffArgs = [
 
 ### Quality vs. File Size Trade-offs
 
-**Current Settings (CRF 22, veryfast):**
+**Current Settings (adaptive CRF 20/22/24, medium preset):**
 
 | Original Format | Resolution | Original Size | Transcoded Size | Compression Ratio |
 |----------------|------------|---------------|-----------------|-------------------|
@@ -164,33 +174,26 @@ const ffArgs = [
 
 ### Client-Side (No Compression)
 
-**File:** `skatehive3.0/services/videoApiService.ts`
+**File:** `skatehive3.0/lib/utils/videoProcessing.ts` (web) · `mobileapp/lib/upload/video-upload.ts` (mobile)
+
+Both clients upload the raw file without any client-side compression. The web app uses `EventSource` for SSE progress; the mobile app polls `/progress/:correlationId` every 1.5s (React Native cannot use `EventSource`).
 
 ```typescript
 // NO CLIENT-SIDE COMPRESSION OCCURS
-async uploadVideo(video: File, options: VideoUploadOptions) {
-  // Video uploaded directly as-is
-  const formData = new FormData();
-  formData.append('video', video);  // Raw file, no processing
-  
-  // Device telemetry added for logging
-  formData.append('platform', deviceInfo.platform);
-  formData.append('deviceInfo', deviceInfo.deviceInfo);
-  formData.append('browserInfo', browserInfo);
-  formData.append('viewport', viewport);
-  formData.append('connectionType', connectionType);
-  formData.append('correlationId', correlationId);
-  
-  // Upload to server
-  return fetch(serverUrl, { method: 'POST', body: formData });
-}
+const formData = new FormData();
+formData.append('video', file);         // Raw file, no processing
+formData.append('creator', username);
+formData.append('correlationId', id);   // For SSE progress tracking
+formData.append('source_app', 'webapp'); // or 'mobile'
+// Upload directly to transcoder (bypasses Vercel size limit)
+return fetch(transcoderUrl + '/transcode', { method: 'POST', body: formData });
 ```
 
 **Key Points:**
 - ✅ **Zero client-side compression**
-- ✅ Upload size limits: ~512MB (configurable via `MAX_UPLOAD_MB`)
+- ✅ Upload size limits: 512MB default (configurable via `MAX_UPLOAD_MB`)
 - ✅ All compression happens on server
-- ✅ Rich telemetry for analytics (device, browser, network, user HP)
+- ✅ Health-checked 3-node fallback: Mac Mini M4 → Oracle Cloud → Raspberry Pi
 
 ### Server-Side Processing
 
@@ -223,25 +226,22 @@ async uploadVideo(video: File, options: VideoUploadOptions) {
 
 ```typescript
 // Priority 1: Mac Mini M4 (Primary)
-const primaryResult = await tryServer(
-  'https://minivlad.tail83ea3e.ts.net/video/transcode',
-  file, username, 'Mac Mini M4 (Primary)', enhancedOptions
-);
-if (primaryResult.success) return primaryResult;
+const r1 = await tryServer('https://minivlad.tail83ea3e.ts.net/video/transcode', ...);
+if (r1.success) return r1;
 
-// Priority 2: Raspberry Pi (Fallback)
-const secondaryResult = await tryServer(
-  'https://vladsberry.tail83ea3e.ts.net/video/transcode',
-  file, username, 'Raspberry Pi (Fallback)', enhancedOptions
-);
-if (secondaryResult.success) return secondaryResult;
+// Priority 2: Oracle Cloud (Secondary)
+const r2 = await tryServer('https://transcode.skatehive.app/transcode', ...);
+if (r2.success) return r2;
 
-// All servers failed - return most informative error
-return secondaryResult.error || primaryResult.error;
+// Priority 3: Raspberry Pi (Last resort)
+const r3 = await tryServer('https://vladsberry.tail83ea3e.ts.net/video/transcode', ...);
+if (r3.success) return r3;
+
+throw new Error('All transcoding servers unavailable');
 ```
 
-**Timeout per server:** Not explicitly set in code (relies on fetch default)
-**Recommendation:** Add explicit timeouts (5-10 minutes per server)
+**Timeout per server:** 30s + 10s per MB of file size, capped at 3 minutes.  
+**Service discovery:** Mobile app queries `GET https://api.skatehive.app/api/transcode/status` at startup to get the current best node URL (30s health-check cache).
 
 ---
 
@@ -249,16 +249,16 @@ return secondaryResult.error || primaryResult.error;
 
 All servers run the same `skatehive-video-transcoder` codebase.
 
-| Feature | Mac Mini M4 | Raspberry Pi |
-|---------|-------------|--------------|
-| **Priority** | 1st (Primary) | 2nd (Fallback) |
-| **Network** | Tailscale (private) | Tailscale (private) |
-| **Performance** | ⭐⭐⭐⭐ Fast (M4) | ⭐⭐ Slow (ARM) |
-| **Reliability** | ✅ Stable | ⚠️ Lower uptime |
-| **Use Case** | Primary production | Emergency only |
-| **Typical Speed** | ~1-2x realtime | ~5-10x realtime |
-| **Best For** | All videos | Small files only |
-| **Cost** | On-prem (Mac Mini) | On-prem (RPi) |
+| Feature | Mac Mini M4 | Oracle Cloud | Raspberry Pi |
+|---------|-------------|--------------|--------------|
+| **Priority** | 1st (Primary) | 2nd (Secondary) | 3rd (Last resort) |
+| **URL** | `minivlad.tail83ea3e.ts.net` | `transcode.skatehive.app` | `vladsberry.tail83ea3e.ts.net` |
+| **Network** | Tailscale (private) | Public internet | Tailscale (private) |
+| **Performance** | ⭐⭐⭐⭐ Fast (M4) | ⭐⭐⭐ Good (cloud VPS) | ⭐⭐ Slow (ARM) |
+| **Reliability** | ✅ Stable | ✅ Stable | ⚠️ Lower uptime |
+| **Use Case** | Primary production | Auto-failover | Emergency only |
+| **Typical Speed** | ~1-2x realtime | ~2-4x realtime | ~5-10x realtime |
+| **Cost** | On-prem (Mac Mini) | Oracle free tier | On-prem (RPi) |
 
 ---
 
@@ -327,11 +327,12 @@ Response: {
 ### Current Settings Analysis
 
 **Strengths:**
-- ✅ High quality (CRF 22)
-- ✅ Fast encoding (veryfast preset)
-- ✅ Universal compatibility (H.264/AAC)
-- ✅ Streaming-optimized (`+faststart`)
+- ✅ High quality (adaptive CRF 20/22/24)
+- ✅ Balanced encoding (medium preset)
+- ✅ Universal mobile compatibility (H.264/AAC/yuv420p)
+- ✅ Streaming-optimized (`+faststart`, maxrate 5M)
 - ✅ No client-side compression (preserves quality)
+- ✅ Smart passthrough: already-optimized files skip transcoding
 
 **Potential Improvements:**
 
@@ -546,7 +547,7 @@ curl https://minivlad.tail83ea3e.ts.net/video/stats
 PORT=8080
 
 # FFmpeg Encoding Settings
-X264_PRESET=veryfast     # ultrafast|superfast|veryfast|faster|fast|medium|slow|slower|veryslow
+X264_PRESET=medium       # ultrafast|superfast|veryfast|faster|fast|medium|slow|slower|veryslow (default: medium)
 X264_CRF=22              # 0-51 (lower = better quality, 18-28 recommended)
 AAC_BITRATE=128k         # Audio bitrate (128k recommended)
 
