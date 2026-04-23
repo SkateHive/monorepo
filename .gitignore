@@ -85,6 +85,7 @@ apps/skatehive3.0/
 apps/mobileapp/
 apps/skatehive-docs/
 apps/skatehive-devbot/
+apps/skatehive-dashboard/
 services/skatehive-api/
 services/skatehive-video-transcoder/
 services/skatehive-instagram-downloader/
