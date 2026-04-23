@@ -443,6 +443,7 @@ SKATEHIVE_REPOS=(
     "apps/skatehive3.0"
     "apps/mobileapp"
     "apps/skatehive-docs"
+    "apps/skatehive-dashboard"
     "services/skatehive-api"
     "services/skatehive-video-transcoder"
     "services/skatehive-instagram-downloader"
@@ -455,6 +456,7 @@ get_repo_url() {
         "apps/skatehive3.0") echo "SkateHive/skatehive3.0" ;;
         "apps/mobileapp") echo "SkateHive/mobileapp" ;;
         "apps/skatehive-docs") echo "SkateHive/skatehive-docs" ;;
+        "apps/skatehive-dashboard") echo "SkateHive/skatehive-dashboard" ;;
         "services/skatehive-api") echo "SkateHive/skatehive-api" ;;
         "services/skatehive-video-transcoder") echo "SkateHive/video-transcoder" ;;
         "services/skatehive-instagram-downloader") echo "SkateHive/skatehive-instagram-downloader" ;;
