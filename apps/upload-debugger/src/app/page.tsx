@@ -83,9 +83,7 @@ export default function Home() {
 
   const checkHealth = async (server: ServerTarget) => {
     const started = performance.now();
-    const response = await fetch(`/api/video-proxy?url=${encodeURIComponent(`${server.url}/healthz`)}`, {
-      cache: 'no-store',
-    });
+    const response = await fetch(`${server.url}/healthz`, { cache: 'no-store' });
     const text = await response.text();
     const elapsed = Math.round(performance.now() - started);
 
