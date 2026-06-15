@@ -11,10 +11,13 @@ type ServerTarget = {
 };
 
 type UploadResult = {
+  server?: string;
+  ok?: boolean;
   cid?: string;
   gatewayUrl?: string;
   requestId?: string;
   duration?: number;
+  elapsedMs?: number;
   creator?: string;
   sourceApp?: string;
   timestamp?: string;
@@ -26,15 +29,15 @@ const servers: ServerTarget[] = [
     key: 'oracle',
     name: 'Oracle public worker',
     url: 'https://transcode.skatehive.app',
-    priority: 'PRIMARY for public Vercel test',
+    priority: 'PUBLIC Oracle baseline',
     publicWeb: true,
   },
   {
     key: 'macmini',
     name: 'Mac Mini M4 Tailnet worker',
     url: 'https://minivlad.tail83ea3e.ts.net/video',
-    priority: 'TAILNET candidate',
-    publicWeb: false,
+    priority: 'Mac Mini speed candidate',
+    publicWeb: true,
   },
   {
     key: 'pi',
@@ -53,7 +56,7 @@ export default function Home() {
   const [logs, setLogs] = useState<string[]>(['UI booted. Pick a video, then press Upload.']);
   const [stage, setStage] = useState('idle');
   const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<UploadResult | null>(null);
+  const [result, setResult] = useState<UploadResult[] | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
@@ -138,72 +141,63 @@ export default function Home() {
     setResult(null);
     setProgress(0);
     setStage('starting');
-    log(`starting upload: ${file.name} (${formatBytes(file.size)})`);
+    const targets = servers.filter((server) => server.publicWeb);
+    log(`starting benchmark upload to ${targets.map((server) => server.key).join(' + ')}: ${file.name} (${formatBytes(file.size)})`);
 
-    for (const server of servers) {
+    const uploadOne = async (server: ServerTarget): Promise<UploadResult> => {
+      const started = performance.now();
       try {
         log(`checking ${server.priority}: ${server.name}`);
         await checkHealth(server);
 
-        if (!server.publicWeb) {
-          log(`skip ${server.key}: Tailnet host is not a reliable public-browser target from Vercel`);
-          continue;
-        }
-
-        const requestId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-        eventSourceRef.current?.close();
-
+        const requestId = `${server.key}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
         const eventSource = new EventSource(`${server.url}/progress/${requestId}`);
-        eventSourceRef.current = eventSource;
-        eventSource.onopen = () => log(`progress stream connected: ${requestId}`);
+        eventSource.onopen = () => log(`${server.key}: progress stream connected ${requestId}`);
         eventSource.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data) as { stage?: string; progress?: number };
-            setStage(data.stage ?? 'progress');
-            setProgress(Number(data.progress ?? 0));
-            log(`progress ${data.progress ?? 0}% ${data.stage ?? 'unknown'}`);
+            log(`${server.key}: progress ${data.progress ?? 0}% ${data.stage ?? 'unknown'}`);
           } catch {
-            log(`progress raw: ${event.data}`);
+            log(`${server.key}: progress raw ${event.data}`);
           }
         };
-        eventSource.onerror = () => log('progress stream error; upload may still continue');
+        eventSource.onerror = () => log(`${server.key}: progress stream error; upload may still continue`);
 
         const formData = new FormData();
         formData.append('video', file);
         formData.append('creator', username || 'debug-user');
-        formData.append('source_app', 'upload-debugger');
+        formData.append('source_app', `upload-debugger-${server.key}`);
         formData.append('platform', 'web');
         formData.append('correlationId', requestId);
 
-        setStage('uploading');
-        log(`POST ${server.url}/transcode requestId=${requestId}`);
-
-        const response = await fetch(`${server.url}/transcode`, {
-          method: 'POST',
-          body: formData,
-        });
+        log(`${server.key}: POST ${server.url}/transcode requestId=${requestId}`);
+        const response = await fetch(`${server.url}/transcode`, { method: 'POST', body: formData });
         const text = await response.text();
         eventSource.close();
 
+        const elapsedMs = Math.round(performance.now() - started);
         if (!response.ok) {
-          log(`upload failed on ${server.key}: HTTP ${response.status} ${text.slice(0, 300)}`);
-          continue;
+          log(`${server.key}: failed HTTP ${response.status} after ${elapsedMs}ms ${text.slice(0, 300)}`);
+          return { server: server.key, ok: false, elapsedMs, error: `HTTP ${response.status}: ${text.slice(0, 500)}` };
         }
 
         const parsed = JSON.parse(text) as UploadResult;
-        setResult(parsed);
-        setStage('done');
-        setProgress(100);
-        log(`success on ${server.key}: ${parsed.cid ?? 'no cid in response'}`);
-        setIsUploading(false);
-        return;
+        log(`${server.key}: success in ${elapsedMs}ms ${parsed.cid ?? 'no cid in response'}`);
+        return { ...parsed, server: server.key, ok: true, elapsedMs };
       } catch (error) {
-        log(`upload error on ${server.key}: ${error instanceof Error ? error.message : 'unknown error'}`);
+        const elapsedMs = Math.round(performance.now() - started);
+        const message = error instanceof Error ? error.message : 'unknown error';
+        log(`${server.key}: error after ${elapsedMs}ms ${message}`);
+        return { server: server.key, ok: false, elapsedMs, error: message };
       }
-    }
+    };
 
-    setStage('failed');
-    setResult({ error: 'All servers failed. Check logs above.' });
+    setStage('benchmarking');
+    setProgress(5);
+    const outcomes = await Promise.all(targets.map(uploadOne));
+    setResult(outcomes);
+    setStage(outcomes.some((outcome) => outcome.ok) ? 'done' : 'failed');
+    setProgress(100);
     setIsUploading(false);
   };
 
@@ -239,7 +233,7 @@ export default function Home() {
 
         <div className="actions">
           <button type="button" onClick={upload} disabled={isUploading || !file}>
-            {isUploading ? 'Uploading...' : 'Upload'}
+            {isUploading ? 'Benchmarking...' : 'Upload to Oracle + Mac Mini'}
           </button>
           <button type="button" onClick={testHealth} disabled={isUploading}>Test health</button>
           <button type="button" onClick={testSse} disabled={isUploading}>Test SSE</button>
