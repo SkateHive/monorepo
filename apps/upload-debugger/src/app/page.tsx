@@ -49,6 +49,7 @@ const servers: ServerTarget[] = [
 ];
 
 const formatBytes = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+const WORKER_TIMEOUT_MS = 10 * 60 * 1000;
 
 export default function Home() {
   const [username, setUsername] = useState('debug-user');
@@ -138,14 +139,23 @@ export default function Home() {
     }
 
     setIsUploading(true);
-    setResult(null);
+    setResult([]);
     setProgress(0);
     setStage('starting');
     const targets = servers.filter((server) => server.publicWeb);
     log(`starting benchmark upload to ${targets.map((server) => server.key).join(' + ')}: ${file.name} (${formatBytes(file.size)})`);
 
+    const saveOutcome = (outcome: UploadResult) => {
+      setResult((current) => [
+        ...(current ?? []).filter((item) => item.server !== outcome.server),
+        outcome,
+      ]);
+    };
+
     const uploadOne = async (server: ServerTarget): Promise<UploadResult> => {
       const started = performance.now();
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), WORKER_TIMEOUT_MS);
       try {
         log(`checking ${server.priority}: ${server.name}`);
         await checkHealth(server);
@@ -171,24 +181,37 @@ export default function Home() {
         formData.append('correlationId', requestId);
 
         log(`${server.key}: POST ${server.url}/transcode requestId=${requestId}`);
-        const response = await fetch(`${server.url}/transcode`, { method: 'POST', body: formData });
+        const response = await fetch(`${server.url}/transcode`, {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        });
         const text = await response.text();
         eventSource.close();
+        window.clearTimeout(timeout);
 
         const elapsedMs = Math.round(performance.now() - started);
         if (!response.ok) {
           log(`${server.key}: failed HTTP ${response.status} after ${elapsedMs}ms ${text.slice(0, 300)}`);
-          return { server: server.key, ok: false, elapsedMs, error: `HTTP ${response.status}: ${text.slice(0, 500)}` };
+          const outcome = { server: server.key, ok: false, elapsedMs, error: `HTTP ${response.status}: ${text.slice(0, 500)}` };
+          saveOutcome(outcome);
+          return outcome;
         }
 
         const parsed = JSON.parse(text) as UploadResult;
         log(`${server.key}: success in ${elapsedMs}ms ${parsed.cid ?? 'no cid in response'}`);
-        return { ...parsed, server: server.key, ok: true, elapsedMs };
+        const outcome = { ...parsed, server: server.key, ok: true, elapsedMs };
+        saveOutcome(outcome);
+        return outcome;
       } catch (error) {
         const elapsedMs = Math.round(performance.now() - started);
+        window.clearTimeout(timeout);
         const message = error instanceof Error ? error.message : 'unknown error';
-        log(`${server.key}: error after ${elapsedMs}ms ${message}`);
-        return { server: server.key, ok: false, elapsedMs, error: message };
+        const errorMessage = message.includes('abort') ? `Timed out after ${Math.round(WORKER_TIMEOUT_MS / 1000)}s` : message;
+        log(`${server.key}: error after ${elapsedMs}ms ${errorMessage}`);
+        const outcome = { server: server.key, ok: false, elapsedMs, error: errorMessage };
+        saveOutcome(outcome);
+        return outcome;
       }
     };
 
