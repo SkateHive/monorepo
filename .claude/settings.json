@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git fetch *)",
+      "Bash(yarn typecheck)",
+      "Bash(xcrun simctl io *)",
+      "Bash(xcrun simctl list *)"
+    ]
+  }
+}
