@@ -94,17 +94,28 @@ The **web app + identity/feature** backend.
 - **`api.skatehive.app`** (most of the app): feed/videos/balance/profile/leaderboard
   (`lib/api.ts`, `lib/constants.ts API_BASE_URL`), all userbase auth + server-custody
   hive actions (`lib/userbase/api.ts`, `lib/posting.ts`), spotmap, transcode.
-- **`skatehive.app`**: now used only for the caption **permalink text** — mobile
-  makes no API calls there anymore (see Status below).
+- **`skatehive.app`**: mobile makes no API calls there anymore (only the caption
+  **permalink text** points at it). See the Instagram status below.
 
-> **Status (2026-06):** Instagram cross-post + IG-handle were **moved to
-> `api.skatehive.app`** (`/api/instagram/post`, `/api/userbase/profile/instagram`),
-> authenticated by a **per-request Hive posting-key signature** — no cookie/session/
-> bootstrap. Mobile now talks to a single backend for everything. The web keeps its
-> own IG endpoints for already-installed (old) mobile builds → **we keep both**
-> intentionally (same shared `userbase_instagram_posts` table, so dedupe/limits stay
-> consistent), and sunset the web path later via an app min-version gate. The temp
-> skatehive.app firewall bypass stays until old builds age out.
+> **Instagram cross-posting — status (2026-06):**
+> - **One implementation on `api.skatehive.app`**: `/api/instagram/post` +
+>   `/api/userbase/profile/instagram`. **Dual auth**: a posting-key **signature**
+>   (mobile key accounts) **or** a userbase **session** — Bearer (mobile email
+>   accounts) / `userbase_refresh` cookie (web).
+> - **Mobile → api only.** **Web `/api/instagram/post` proxies to api** (unified,
+>   live). The web **force-post** (moderator carousel) still runs on the web with
+>   its own token — transitional duplication; both write the shared
+>   `userbase_instagram_posts` table so dedupe/limits stay consistent.
+> - **Eligibility:** classic key accounts, OR email accounts with a **linked,
+>   eligible (≥100 HP) Hive account** — not all email users.
+> - **Resilience:** ordered token-fallback (auth-error failover), a fail-open
+>   pre-flight media-fetchability check (turns Meta's opaque 2207077 into a clear
+>   retryable error), and the force-post carousel **skips items Meta rejects** +
+>   lets the moderator **select** which items to post.
+> - **Known open item (upstream, not code):** some **video CIDs never pin/serve**
+>   on `ipfs.skatehive.app` (return 400 to everyone incl. Meta) → those Reels can't
+>   cross-post **and don't play in the feed**. Fix belongs in the transcoder/pinning.
+> - The temp skatehive.app firewall bypass stays until old mobile builds age out.
 
 ### apps/skatehive3.0 → mostly itself, plus api.skatehive.app from the **client**
 The web **server** routes call Supabase / Hive RPC / external services directly. The web
@@ -174,8 +185,9 @@ Consequences observed in practice:
    two are separate git repos, so a shared package isn't trivial; likely api becomes the
    single userbase backend and web proxies/calls it).
 2. **Move Instagram (+ Meta tokens) to `api.skatehive.app`.** ✅ **Done (2026-06)** —
-   signature-auth, no bootstrap/cookie. Web keeps its own IG endpoints for old builds
-   ("keep both"); sunset later via app min-version gate.
+   dual-auth (signature or userbase session), web user cross-post proxies to api,
+   token-fallback + pre-flight media check + carousel select/skip. Web force-post
+   (moderator carousel) still on web — port later to fully retire web's IG libs.
 3. **Retire `/api/v1/*`.** 🔸 **In progress** — confirmed zero internal consumers + full
    v2 parity. Now emitting `Deprecation`/`Sunset` headers + usage logging via
    `middleware.ts`; delete the 15 route files (and the `v1/auth.ts` util the middleware
