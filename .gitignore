@@ -89,4 +89,9 @@ apps/skatehive-dashboard/
 services/skatehive-api/
 services/skatehive-video-transcoder/
 services/skatehive-instagram-downloader/
+# --- userbase unification phase 1: TEMPORARY safety net (remove when phase closes) ---
 /skatehive-backups/
+scripts/userbase-phase1/.env-*
+**/userbase_full_*.sql
+**/userbase_manifest_*.txt
+# --- end temporary ---
