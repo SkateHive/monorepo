@@ -64,17 +64,19 @@ unchanged). Known specifics:
 Simplest: body is `{ author, permlink, weight }`, no metadata. Proxy forwards as-is.
 api records the `userbase_soft_votes` row when using the default account.
 
-### 5.2 comment  (+ the one api edit)
-- The web client sends `json_metadata` (carrying the web app tag). api's comment route
-  currently **hardcodes** `app: "skatehive-mobile"`
-  ([api comment route:43](../../../services/skatehive-api/src/app/api/userbase/hive/comment/route.ts)),
-  which would mislabel web comments after cutover.
-- **api edit:** change line 43 from `app: "skatehive-mobile"` to
-  `app: (typeof body?.json_metadata?.app === "string" ? body.json_metadata.app : "skatehive-mobile")`
-  — respect an incoming app tag, default to mobile when absent. This keeps mobile behavior
-  identical and lets the web proxy pass `app: "<web tag>"` through `json_metadata`.
-- The proxy forwards the web client's body (incl. `json_metadata` with the web app tag).
-  Confirm the web client already sets its app tag; if not, the proxy sets it.
+### 5.2 comment  (needs an api feature add first — scope decision 2026-06-26: all-in-one plan)
+Two api gaps must be closed **before** the web comment can be proxied without regression:
+- **Beneficiaries / `comment_options`:** the web comment broadcasts a `comment_options` op
+  with beneficiaries (reward split); api's `broadcastComment` only sends a single `comment`
+  op. Proxying as-is would **drop beneficiaries**. → extend api `broadcastComment` to append
+  a `comment_options` op when beneficiaries are present (and parse/validate them in the api
+  comment route, mirroring the web's rules). Backward compatible (absent → single op, as today).
+- **App tag:** api **hardcodes** `app: "skatehive-mobile"`
+  ([api comment route:43](../../../services/skatehive-api/src/app/api/userbase/hive/comment/route.ts)).
+  → respect an incoming `json_metadata.app`, default to `skatehive-mobile` when absent. Keeps
+  mobile identical; lets the web proxy carry its own app tag.
+- Only after both ship to api does the web comment route become a proxy that forwards the full
+  body (incl. `json_metadata` + `beneficiaries`).
 
 ### 5.3 follow
 Custom-json `follow` (no app-tag issue). api **403s** when the signer is the default
