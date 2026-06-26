@@ -178,12 +178,15 @@ Consequences observed in practice:
 
 ## 6. Recommendations (status)
 
-1. **Unify `userbase` into one backend** (recommended: `api.skatehive.app`) accepting
-   **both** transports — `Authorization: Bearer` (mobile) **and** `userbase_refresh`
-   cookie (web) — so web calls one implementation instead of re-hosting `userbase/*`.
-   Kills the split-brain and the drift. ⏳ **Open — biggest item; needs a plan** (the
-   two are separate git repos, so a shared package isn't trivial; likely api becomes the
-   single userbase backend and web proxies/calls it).
+1. **Unify `userbase` into one backend** (`api.skatehive.app` is the owner).
+   🔸 **In progress (2026-06-26)** — Phase 1 proved the secrets are identical and that api
+   resolves both transports. Phase 2 cutover: the web `hive/{vote,comment,follow}` routes
+   are now **thin proxies that forward to api** (the `userbase_refresh` cookie value is sent
+   as `Authorization: Bearer`, since the api hive routes auth via `getBearerUserId`). api
+   gained `comment_options`/beneficiaries support so proxied comments keep their reward
+   splits. **Still to port:** `account-update`, `report`, and `bootstrap` (mobile depends on
+   web's bootstrap). See `docs/superpowers/{specs,plans}/2026-06-26-userbase-unification-phase2*`
+   and `docs/userbase-phase1-findings.md`.
 2. **Move Instagram (+ Meta tokens) to `api.skatehive.app`.** ✅ **Done (2026-06)** —
    dual-auth (signature or userbase session), web user cross-post proxies to api,
    token-fallback + pre-flight media check + carousel select/skip. Web force-post

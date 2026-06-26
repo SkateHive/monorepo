@@ -1,0 +1,752 @@
+<title>SkateHive Infrastructure</title>
+<style>
+  :root{
+    --asphalt:#0E0F0A;
+    --asphalt-2:#121309;
+    --panel:#16180F;
+    --panel-2:#1C1F13;
+    --line:rgba(182,255,60,.14);
+    --line-soft:rgba(236,238,226,.08);
+    --ink:#ECEEE2;
+    --muted:#8B927C;
+    --muted-2:#646b58;
+    --lime:#B6FF3C;
+    --lime-dim:#7ea82a;
+    --blue:#56A7E1;
+    --blue-dim:#3a6e93;
+    --magenta:#FF3D8A;
+    --magenta-dim:#a8305f;
+    --gold:#FFBD4A;
+    --red:#FF5C5C;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --display:"Arial Black","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --maxw:1160px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{
+    margin:0;background:var(--asphalt);color:var(--ink);
+    font-family:var(--sans);font-size:16px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(1100px 600px at 78% -8%, rgba(182,255,60,.07), transparent 60%),
+      radial-gradient(900px 520px at 5% 8%, rgba(86,167,225,.05), transparent 55%);
+    background-attachment:fixed;
+  }
+  ::selection{background:var(--lime);color:#0b0c08}
+  a{color:var(--lime);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* ---- type ---- */
+  h2{font-family:var(--display);font-weight:900;letter-spacing:-.01em;
+     text-transform:uppercase;font-size:clamp(26px,4.4vw,46px);line-height:.98;
+     margin:0;text-wrap:balance}
+  h3{font-family:var(--display);font-weight:900;text-transform:uppercase;
+     letter-spacing:.01em;font-size:19px;margin:0;color:var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.26em;
+     text-transform:uppercase;color:var(--muted);margin:0 0 14px}
+  .lead{font-size:18px;color:#cdd1c2;max-width:64ch;line-height:1.62}
+  code,.mono{font-family:var(--mono)}
+
+  /* ---- top nav ---- */
+  header.nav{position:sticky;top:0;z-index:50;
+    background:rgba(14,15,10,.82);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line)}
+  .nav-in{max-width:var(--maxw);margin:0 auto;padding:11px 24px;
+    display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+  .brand{font-family:var(--display);font-weight:900;text-transform:uppercase;
+    letter-spacing:-.01em;font-size:16px;display:flex;align-items:center;gap:9px;white-space:nowrap}
+  .brand .deck{width:26px;height:14px;border-radius:7px;
+    background:linear-gradient(90deg,var(--lime),#86d52a);
+    box-shadow:0 0 0 2px var(--asphalt),0 0 14px rgba(182,255,60,.5);
+    position:relative;flex:none}
+  .brand .deck::before,.brand .deck::after{content:"";position:absolute;bottom:-4px;
+    width:6px;height:6px;border-radius:50%;background:#0b0c08;border:1.5px solid var(--lime-dim)}
+  .brand .deck::before{left:3px}.brand .deck::after{right:3px}
+  .brand b{color:var(--lime)}
+  .nav-links{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);
+    font-size:12.5px;letter-spacing:.04em}
+  .nav-links a{color:var(--muted)}
+  .nav-links a:hover{color:var(--ink);text-decoration:none}
+  .nav-spacer{flex:1}
+
+  /* ---- hero ---- */
+  .hero{padding:74px 0 38px;position:relative}
+  .hero .kicker{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--lime);
+    border:1px solid var(--line);border-radius:999px;padding:6px 13px;margin-bottom:24px}
+  .hero .kicker .dot{width:7px;height:7px;border-radius:50%;background:var(--lime);
+    box-shadow:0 0 10px var(--lime)}
+  .hero h1{font-family:var(--display);font-weight:900;text-transform:uppercase;
+    font-size:clamp(40px,8vw,86px);line-height:.9;letter-spacing:-.025em;margin:0;
+    text-wrap:balance}
+  .hero h1 .g{background:linear-gradient(92deg,var(--lime),#7fe0ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.lead{margin-top:24px}
+  .statline{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+  .stat{border:1px solid var(--line);border-radius:10px;padding:12px 16px;
+    background:linear-gradient(180deg,var(--panel),rgba(22,24,15,.4));min-width:118px}
+  .stat .n{font-family:var(--display);font-weight:900;font-size:30px;line-height:1;
+    color:var(--lime);font-variant-numeric:tabular-nums}
+  .stat .l{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);margin-top:7px}
+
+  /* ---- section frame ---- */
+  section{padding:62px 0;border-top:1px solid var(--line-soft)}
+  .sec-head{margin-bottom:34px;max-width:74ch}
+  .sec-head .lead{margin-top:16px}
+
+  /* ---- legend ---- */
+  .legend{display:flex;gap:9px;flex-wrap:wrap;font-family:var(--mono);font-size:11.5px}
+  .legend .chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-soft);
+    border-radius:999px;padding:4px 11px;color:var(--muted)}
+  .legend .sw{width:9px;height:9px;border-radius:2px;flex:none}
+
+  /* ---- system map ---- */
+  .map{display:grid;gap:14px}
+  .tier{border:1px solid var(--line-soft);border-radius:14px;padding:16px;
+    background:linear-gradient(180deg,rgba(22,24,15,.55),rgba(18,19,9,.3))}
+  .tier-label{font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--muted);margin:0 0 13px}
+  .tier-row{display:grid;gap:12px}
+  .cols-2{grid-template-columns:repeat(2,1fr)}
+  .cols-3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:720px){.cols-2,.cols-3{grid-template-columns:1fr}}
+  .node{border-radius:12px;padding:15px 16px;background:var(--panel);
+    border:1px solid var(--line-soft);position:relative;overflow:hidden}
+  .node .role{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+  .node .name{font-family:var(--display);font-weight:900;text-transform:uppercase;
+    font-size:15px;letter-spacing:.005em}
+  .node .url{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:3px}
+  .node p.d{margin:9px 0 0;font-size:13px;color:#c2c7b6;line-height:1.5}
+  .node::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .n-client::before{background:var(--ink)}
+  .n-api::before{background:var(--lime)}
+  .n-web::before{background:var(--lime)}
+  .n-db-user::before{background:var(--lime)}
+  .n-db-haf::before{background:var(--blue)}
+  .n-db-lead::before{background:var(--magenta)}
+  .n-chain::before{background:var(--blue)}
+  .n-jobs::before{background:var(--gold)}
+  .flowdown{display:flex;justify-content:center;color:var(--muted-2);font-size:20px;
+    margin:-2px 0}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+    text-transform:uppercase;padding:2px 8px;border-radius:5px;margin:8px 6px 0 0;
+    border:1px solid var(--line-soft);color:var(--muted)}
+  .tag.lime{color:var(--lime);border-color:rgba(182,255,60,.35)}
+  .tag.blue{color:var(--blue);border-color:rgba(86,167,225,.35)}
+  .tag.mag{color:var(--magenta);border-color:rgba(255,61,138,.35)}
+  .tag.gold{color:var(--gold);border-color:rgba(255,189,74,.35)}
+
+  /* ---- flow steps ---- */
+  .flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0}
+  .step{position:relative;padding:16px 18px 16px 16px;border:1px solid var(--line-soft);
+    background:var(--panel);border-right:none}
+  .step:last-child{border-right:1px solid var(--line-soft)}
+  .step:first-child{border-radius:12px 0 0 12px}
+  .step:last-child{border-radius:0 12px 12px 0}
+  @media(max-width:680px){
+    .flow{grid-template-columns:1fr}
+    .step{border-right:1px solid var(--line-soft);border-bottom:none}
+    .step:last-child{border-bottom:1px solid var(--line-soft)}
+    .step:first-child{border-radius:12px 12px 0 0}
+    .step:last-child{border-radius:0 0 12px 12px}
+  }
+  .step .num{font-family:var(--mono);font-size:11px;color:var(--lime);letter-spacing:.1em}
+  .step .t{font-weight:700;font-size:13.5px;margin:7px 0 4px}
+  .step .s{font-size:12.5px;color:var(--muted);line-height:1.45}
+  .step code{color:#cdd1c2;font-size:11.5px}
+
+  /* ---- cards grid ---- */
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.g3{grid-template-columns:1fr 1fr}}
+  @media(max-width:680px){.g2,.g3{grid-template-columns:1fr}}
+
+  /* ---- db zone ---- */
+  .zone{border:1px solid var(--line-soft);border-radius:18px;padding:26px;margin-top:8px;
+    background:linear-gradient(180deg,rgba(20,22,13,.6),rgba(14,15,10,.2))}
+  .zone.user{border-color:rgba(182,255,60,.22);box-shadow:inset 0 1px 0 rgba(182,255,60,.06)}
+  .zone.haf{border-color:rgba(86,167,225,.22);box-shadow:inset 0 1px 0 rgba(86,167,225,.06)}
+  .zone.lead{border-color:rgba(255,61,138,.22);box-shadow:inset 0 1px 0 rgba(255,61,138,.06)}
+  .zone-head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+  .zone-badge{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    padding:6px 12px;border-radius:8px;font-weight:600;white-space:nowrap}
+  .zone.user .zone-badge{background:rgba(182,255,60,.12);color:var(--lime);border:1px solid rgba(182,255,60,.3)}
+  .zone.haf .zone-badge{background:rgba(86,167,225,.12);color:var(--blue);border:1px solid rgba(86,167,225,.3)}
+  .zone.lead .zone-badge{background:rgba(255,61,138,.12);color:var(--magenta);border:1px solid rgba(255,61,138,.3)}
+  .zone h3.zh{font-size:23px}
+  .zone .meta{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:5px}
+  .group-label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin:26px 0 12px;padding-top:14px;border-top:1px dashed var(--line-soft)}
+  .group-label:first-of-type{border-top:none;padding-top:0;margin-top:18px}
+
+  /* ---- table card ---- */
+  .tcard{border:1px solid var(--line-soft);border-radius:12px;background:var(--panel);
+    overflow:hidden;transition:transform .15s ease,border-color .15s ease}
+  .tcard:hover{transform:translateY(-2px);border-color:var(--line)}
+  .tcard .th{padding:12px 14px;border-bottom:1px solid var(--line-soft);
+    background:linear-gradient(180deg,rgba(28,31,19,.7),transparent)}
+  .tcard .tname{font-family:var(--mono);font-weight:600;font-size:13.5px;color:var(--ink);
+    word-break:break-all}
+  .user .tcard .tname{color:var(--lime)}
+  .haf .tcard .tname{color:var(--blue)}
+  .lead .tcard .tname{color:var(--magenta)}
+  .tcard .tdesc{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.45}
+  .cols{padding:6px 0}
+  .col{display:flex;align-items:baseline;gap:8px;padding:5px 14px;
+    border-top:1px solid rgba(236,238,226,.04);font-family:var(--mono);font-size:12px}
+  .col:first-child{border-top:none}
+  .col .cn{color:#d6dac9;white-space:nowrap}
+  .col .ct{color:var(--muted-2);font-size:11px;margin-left:auto;white-space:nowrap}
+  .badge{font-size:9px;letter-spacing:.06em;padding:1px 5px;border-radius:4px;
+    text-transform:uppercase;font-family:var(--mono);flex:none}
+  .b-pk{background:rgba(255,189,74,.16);color:var(--gold)}
+  .b-fk{background:rgba(86,167,225,.16);color:var(--blue)}
+  .b-uq{background:rgba(182,255,60,.14);color:var(--lime)}
+  .col.fk .cn{color:var(--blue)}
+  .rel{padding:10px 14px;border-top:1px solid var(--line-soft);font-family:var(--mono);
+    font-size:11px;color:var(--muted);background:rgba(86,167,225,.04)}
+  .rel b{color:var(--blue);font-weight:600}
+
+  /* ---- key-value list ---- */
+  .kv{border:1px solid var(--line-soft);border-radius:12px;overflow:hidden}
+  .kv .row{display:grid;grid-template-columns:minmax(130px,210px) 1fr;gap:14px;
+    padding:11px 16px;border-top:1px solid var(--line-soft);font-size:13.5px}
+  .kv .row:first-child{border-top:none}
+  .kv .k{font-family:var(--mono);font-size:12.5px;color:var(--lime);word-break:break-word}
+  .haf .kv .k{color:var(--blue)}
+  .kv .v{color:#c4c9b8;line-height:1.5}
+  @media(max-width:600px){.kv .row{grid-template-columns:1fr;gap:3px}}
+
+  /* ---- formula ---- */
+  .formula{border:1px solid rgba(255,61,138,.2);border-radius:12px;background:rgba(255,61,138,.04);
+    padding:18px 20px;font-family:var(--mono);font-size:12.5px;line-height:1.9;
+    overflow-x:auto;color:#d6dac9}
+  .formula .op{color:var(--magenta)}
+  .formula .cap{color:var(--gold)}
+  .formula .neg{color:var(--red)}
+
+  /* ---- callout / split ---- */
+  .note{border-left:3px solid var(--gold);background:rgba(255,189,74,.06);
+    padding:14px 18px;border-radius:0 10px 10px 0;font-size:14px;color:#d4d8c7;margin-top:18px}
+  .note b{color:var(--gold)}
+
+  /* ---- recommendations ---- */
+  .recs{display:grid;gap:12px}
+  .rec{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;
+    border:1px solid var(--line-soft);border-radius:12px;padding:15px 18px;background:var(--panel)}
+  @media(max-width:680px){.rec{grid-template-columns:auto 1fr;}.rec .status{grid-column:2}}
+  .rec .ix{font-family:var(--display);font-weight:900;font-size:24px;color:var(--muted-2);
+    line-height:1;font-variant-numeric:tabular-nums}
+  .rec .rt{font-weight:700;font-size:15px}
+  .rec .rd{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.5}
+  .rec .status{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:4px 10px;border-radius:999px;white-space:nowrap;align-self:start}
+  .st-done{background:rgba(182,255,60,.14);color:var(--lime)}
+  .st-prog{background:rgba(255,189,74,.14);color:var(--gold)}
+  .st-open{background:rgba(255,92,92,.14);color:var(--red)}
+
+  /* ---- two-up auth ---- */
+  .authcard{border:1px solid var(--line-soft);border-radius:14px;padding:20px;background:var(--panel)}
+  .authcard .hd{display:flex;align-items:center;gap:11px;margin-bottom:6px}
+  .authcard .pill{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:7px;
+    text-transform:uppercase;letter-spacing:.06em}
+  .pill.bear{background:rgba(182,255,60,.13);color:var(--lime);border:1px solid rgba(182,255,60,.3)}
+  .pill.cook{background:rgba(86,167,225,.13);color:var(--blue);border:1px solid rgba(86,167,225,.3)}
+  .authcard ul{margin:12px 0 0;padding-left:0;list-style:none;display:grid;gap:8px}
+  .authcard li{font-size:13.5px;color:#c4c9b8;padding-left:18px;position:relative;line-height:1.5}
+  .authcard li::before{content:"▸";position:absolute;left:0;color:var(--muted-2)}
+  .authcard li code{font-size:12px;color:var(--ink)}
+
+  footer{border-top:1px solid var(--line);padding:42px 0 60px;margin-top:30px}
+  footer .ft{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+  .reveal{opacity:0;transform:translateY(14px)}
+  .reveal.in{opacity:1;transform:none;transition:opacity .5s ease,transform .5s ease}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
+
+  :focus-visible{outline:2px solid var(--lime);outline-offset:3px;border-radius:4px}
+</style>
+
+<header class="nav">
+  <div class="nav-in">
+    <span class="brand"><span class="deck" aria-hidden="true"></span>SKATE<b>HIVE</b><span style="color:var(--muted-2)">/infra</span></span>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#map">Map</a>
+      <a href="#magic">Lite&nbsp;accounts</a>
+      <a href="#db">Databases</a>
+      <a href="#calls">Who&nbsp;calls&nbsp;what</a>
+      <a href="#eval">Evaluation</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" style="border-top:none">
+    <div class="wrap">
+      <span class="kicker"><span class="dot" aria-hidden="true"></span>Infrastructure overview · 2026</span>
+      <h1>The skate network<br>that hides its<br><span class="g">blockchain.</span></h1>
+      <p class="lead">SkateHive is a skateboarding social network built on the <strong>Hive</strong> blockchain. Anyone can join by email, wallet, Farcaster, or a Hive key — and post, vote, and comment immediately, whether or not they own a single crypto key. Behind that simplicity sit <strong>two Next.js backends</strong>, <strong>two client apps</strong>, and <strong>three distinct databases</strong>. This page maps all of it.</p>
+      <div class="statline">
+        <div class="stat"><div class="n">2</div><div class="l">Client apps</div></div>
+        <div class="stat"><div class="n">2</div><div class="l">Backends</div></div>
+        <div class="stat"><div class="n">3</div><div class="l">Databases</div></div>
+        <div class="stat"><div class="n">~165</div><div class="l">API routes</div></div>
+        <div class="stat"><div class="n">13</div><div class="l">Userbase tables</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SYSTEM MAP ============ -->
+  <section id="map">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">01 — The big picture</p>
+        <h2>One network, three layers</h2>
+        <p class="lead">Clients talk to backends; backends own the data. The two backends are <em>separate git repos and separate Vercel projects</em> — they don't call each other over HTTP, they couple through a shared <span style="color:var(--lime)">userbase</span> database.</p>
+        <div class="legend" style="margin-top:18px">
+          <span class="chip"><span class="sw" style="background:var(--lime)"></span>Userbase (shared)</span>
+          <span class="chip"><span class="sw" style="background:var(--blue)"></span>HAFSQL / Hive chain</span>
+          <span class="chip"><span class="sw" style="background:var(--magenta)"></span>Leaderboard</span>
+          <span class="chip"><span class="sw" style="background:var(--gold)"></span>Off-Vercel jobs</span>
+        </div>
+      </div>
+
+      <div class="map reveal">
+        <div class="tier">
+          <p class="tier-label">Clients</p>
+          <div class="tier-row cols-2">
+            <div class="node n-client">
+              <p class="role">Web · Next.js</p>
+              <div class="name">skatehive.app</div>
+              <div class="url">apps/skatehive3.0</div>
+              <p class="d">The web app <em>and</em> a backend. Browser sessions use a <code>userbase_refresh</code> cookie.</p>
+            </div>
+            <div class="node n-client">
+              <p class="role">Mobile · Expo / React Native</p>
+              <div class="name">SkateHive App</div>
+              <div class="url">apps/mobileapp · TestFlight / Play</div>
+              <p class="d">No backend of its own. Talks to <strong>both</strong> deployments with a Bearer token.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flowdown" aria-hidden="true">▼</div>
+
+        <div class="tier">
+          <p class="tier-label">Backends — Next.js API routes on Vercel</p>
+          <div class="tier-row cols-2">
+            <div class="node n-api">
+              <p class="role">Backend · Vercel project B</p>
+              <div class="name">api.skatehive.app</div>
+              <div class="url">services/skatehive-api · ~76 routes</div>
+              <p class="d">The read/data + mobile-custody backend. Feed, profile, balances, search, leaderboard, video, IPFS posting, and mobile userbase auth.</p>
+              <span class="tag lime">Auth: Bearer token</span>
+            </div>
+            <div class="node n-web">
+              <p class="role">Backend · Vercel project A</p>
+              <div class="name">skatehive.app</div>
+              <div class="url">apps/skatehive3.0 · ~89 routes</div>
+              <p class="d">Identity & feature backend. Web userbase auth, identities, encrypted keys, sponsorships, Farcaster, DEX/portfolio, Pinata/IPFS. Hive vote/comment/follow now <strong>proxy to api</strong>.</p>
+              <span class="tag blue">Auth: refresh cookie</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flowdown" aria-hidden="true">▼</div>
+
+        <div class="tier">
+          <p class="tier-label">Data layer</p>
+          <div class="tier-row cols-3">
+            <div class="node n-db-user">
+              <p class="role">Supabase · project aaxh…</p>
+              <div class="name">Userbase DB</div>
+              <p class="d">Identity, sessions, soft posts/votes, keys, sponsorships, Instagram, spotmap. <strong>Shared by both backends.</strong></p>
+              <span class="tag lime">13 tables · read+write</span>
+            </div>
+            <div class="node n-db-haf">
+              <p class="role">External · HAF Postgres</p>
+              <div class="name">HAFSQL</div>
+              <p class="d">Read-only mirror of the Hive blockchain — accounts, comments, balances, follows, votes. <strong>api only.</strong></p>
+              <span class="tag blue">read-only · never migrate</span>
+            </div>
+            <div class="node n-db-lead">
+              <p class="role">Supabase · project akjn…</p>
+              <div class="name">Leaderboard DB</div>
+              <p class="d">One precomputed ranking table. <strong>api reads it; a Mac&nbsp;Mini writes it.</strong></p>
+              <span class="tag mag">1 table · cached rankings</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flowdown" aria-hidden="true">▼</div>
+
+        <div class="tier">
+          <p class="tier-label">Source of truth &amp; heavy jobs</p>
+          <div class="tier-row cols-2">
+            <div class="node n-chain">
+              <p class="role">Layer-1</p>
+              <div class="name">Hive blockchain</div>
+              <p class="d">Where every post, vote, comment, and follow actually lands. HAFSQL indexes it; clients also broadcast to it directly.</p>
+            </div>
+            <div class="node n-jobs">
+              <p class="role">Self-hosted · Tailscale</p>
+              <div class="name">Off-Vercel workers</div>
+              <p class="d">Mac&nbsp;Mini + Oracle + Pi run the leaderboard recompute, video transcoder, and Instagram scraper — the heavy work Vercel can't.</p>
+              <span class="tag gold">transcode · IG · rankings</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE MAGIC: LITE ACCOUNTS ============ -->
+  <section id="magic">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">02 — The core idea</p>
+        <h2>Lite accounts &amp; the<br>@skateuser trick</h2>
+        <p class="lead">Hive requires a cryptographic key to do anything. Most new skaters don't have one — so SkateHive lets them act through a <strong>shared Hive account, <code style="color:var(--lime)">@skateuser</code></strong>, while the UI overlays the <em>real</em> author's identity. The link between "who really did this" and "what hit the chain" is the <strong>soft post / soft vote</strong> registry in the userbase DB.</p>
+      </div>
+
+      <div class="grid g2 reveal" style="margin-bottom:26px">
+        <div class="authcard">
+          <div class="hd"><h3>Lite account</h3><span class="pill bear">no key</span></div>
+          <p style="color:var(--muted);font-size:13.5px;margin:4px 0 0">Signed up with email / wallet / Farcaster and hasn't linked a Hive key.</p>
+          <ul>
+            <li>Server signs with the shared <code>@skateuser</code> key</li>
+            <li>A <code>userbase_soft_posts</code> / <code>_soft_votes</code> row records the real author</li>
+            <li>The feed overlays their name, avatar &amp; profile on the post</li>
+            <li>Works forever — upgrading is optional</li>
+          </ul>
+        </div>
+        <div class="authcard">
+          <div class="hd"><h3>Full account</h3><span class="pill cook">own key</span></div>
+          <p style="color:var(--muted);font-size:13.5px;margin:4px 0 0">Linked Hive via Keychain, got sponsored, or stored a posting key.</p>
+          <ul>
+            <li>Posts under their own <code>@username</code> on-chain</li>
+            <li>Key signed by Keychain, or by an <strong>AES-256-GCM</strong> key held in <code>userbase_hive_keys</code></li>
+            <li>Full blockchain ownership — no shared account</li>
+            <li>Reached via sponsorship, link, or manual key storage</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 class="reveal" style="font-size:15px;margin-bottom:14px;color:var(--muted)">↳ What happens when a lite user votes</h3>
+      <div class="flow reveal">
+        <div class="step"><div class="num">01</div><div class="t">Tap vote</div><div class="s">Client sees <code>kind: "userbase"</code> and POSTs to <code>/api/userbase/hive/vote</code> with its Bearer token.</div></div>
+        <div class="step"><div class="num">02</div><div class="t">Resolve user</div><div class="s">api hashes the token, finds the <code>userbase_sessions</code> row, resolves the real user.</div></div>
+        <div class="step"><div class="num">03</div><div class="t">Sign &amp; broadcast</div><div class="s">Server signs the vote with the shared key and broadcasts to Hive immediately.</div></div>
+        <div class="step"><div class="num">04</div><div class="t">Record attribution</div><div class="s">A <code>userbase_soft_votes</code> row links the real user to <code>(author, permlink)</code>.</div></div>
+        <div class="step"><div class="num">05</div><div class="t">Overlay in feed</div><div class="s">The feed joins soft rows back in and shows the real skater, not <code>@skateuser</code>.</div></div>
+      </div>
+      <div class="note reveal"><b>Not a queue.</b> Broadcasts are synchronous — a soft row is attribution, not a job. No background workers, runs on Vercel's free tier. The four entry points (email · EVM · Farcaster · Hive Keychain) are all equal citizens; the entry point never limits what you can do.</div>
+    </div>
+  </section>
+
+  <!-- ============ DATABASES ============ -->
+  <section id="db">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">03 — The data</p>
+        <h2>Three databases,<br>three jobs</h2>
+        <p class="lead">Do not conflate them. One holds SkateHive's own identity graph, one is a read-only window onto Hive, and one caches a ranking. Each table below shows its columns, types, and relationships — <span class="b-pk badge" style="vertical-align:middle">PK</span> primary key, <span class="b-fk badge" style="vertical-align:middle">FK</span> foreign key, <span class="b-uq badge" style="vertical-align:middle">UQ</span> unique.</p>
+      </div>
+      <div id="db-zones"></div>
+    </div>
+  </section>
+
+  <!-- ============ WHO CALLS WHAT ============ -->
+  <section id="calls">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">04 — Traffic</p>
+        <h2>Who calls what</h2>
+        <p class="lead">The same logical user shows up with two different session transports depending on the client. That split is the source of most of the architecture's friction.</p>
+      </div>
+
+      <div class="grid g2 reveal" style="margin-bottom:22px">
+        <div class="authcard">
+          <div class="hd"><span class="pill bear">Mobile</span><h3 style="font-size:16px">spans both backends</h3></div>
+          <ul>
+            <li><b style="color:var(--lime)">api.skatehive.app</b> — feed, videos, balance, profile, leaderboard, spotmap, transcode, and all userbase auth + server-custody hive actions</li>
+            <li><b style="color:var(--blue)">skatehive.app</b> — no API calls anymore; only the caption permalink text points there</li>
+            <li>Classic key accounts encrypt the WIF on-device (PBKDF2 + AES-256, PIN/biometric); lite accounts hold only an opaque Bearer token</li>
+          </ul>
+        </div>
+        <div class="authcard">
+          <div class="hd"><span class="pill cook">Web</span><h3 style="font-size:16px">proxies the write-core</h3></div>
+          <ul>
+            <li><b style="color:var(--lime)">hive/vote, comment &amp; follow now proxy to api</b> — the web routes forward the session (cookie value sent as Bearer); api is the single owner of the broadcast + soft rows</li>
+            <li>The <em>client</em> fetches read data (feed, leaderboard, highest-paid) from <b style="color:var(--lime)">api.skatehive.app</b></li>
+            <li>Still owns the browser-only flows: identities (EVM/Farcaster), encrypted keys, sponsorships, merge, magic-link, bootstrap</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="kv reveal">
+        <div class="row"><div class="k">Bearer token</div><div class="v">Mobile transport. <code class="mono">Authorization: Bearer &lt;token&gt;</code> → hashed → <code class="mono">userbase_sessions</code> row.</div></div>
+        <div class="row"><div class="k">Refresh cookie</div><div class="v">Web transport. <code class="mono">userbase_refresh</code> httpOnly cookie → <em>the same</em> <code class="mono">userbase_sessions</code> rows. The two transports are interchangeable at the DB level.</div></div>
+        <div class="row"><div class="k">Hive writes (web)</div><div class="v"><code class="mono">vote</code> / <code class="mono">comment</code> / <code class="mono">follow</code> on web now <strong>forward to <b style="color:var(--lime)">api.skatehive.app</b></strong> (cookie value sent as <code class="mono">Authorization: Bearer</code> — api hive routes are Bearer-only). One implementation; the web no longer signs/broadcasts these itself.</div></div>
+        <div class="row"><div class="k">Instagram</div><div class="v">Unified on <b style="color:var(--lime)">api.skatehive.app</b> (dual-auth: posting-key signature <em>or</em> userbase session). Web user cross-posts proxy to api; moderator force-post still runs on web. Both write <code class="mono">userbase_instagram_posts</code>.</div></div>
+        <div class="row"><div class="k">Heavy jobs</div><div class="v">Leaderboard recompute, video transcode, IG scraping all run off-Vercel on the Mac&nbsp;Mini / Oracle / Pi over Tailscale.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EVALUATION ============ -->
+  <section id="eval">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">05 — Honest assessment</p>
+        <h2>Is the split smart?</h2>
+        <p class="lead">Separating the read/data API from the web app is reasonable, and keeping heavy work off Vercel is the single biggest win. The strain comes from <strong>userbase being implemented twice</strong> over the same tables — once per backend, with two different auth transports.</p>
+      </div>
+
+      <div class="note reveal" style="border-left-color:var(--red);background:rgba(255,92,92,.06);margin-top:0;margin-bottom:26px">
+        <b style="color:var(--red)">Split-brain userbase</b> <span style="color:var(--lime)">(now being resolved — see #1)</span>. Session creation, hive broadcast, and soft-post writes existed as parallel code in both repos. The duplicated write-core (vote/comment/follow) has been consolidated onto api via proxies; account-update/report + bootstrap still live in both.
+      </div>
+
+      <div class="recs reveal">
+        <div class="rec">
+          <div class="ix">1</div>
+          <div><div class="rt">Unify userbase into one backend</div><div class="rd">api.skatehive.app is the single owner of the write-core. Web <code class="mono">hive/vote/comment/follow</code> now proxy to it (cookie→Bearer); api gained beneficiaries (comment_options) so comment keeps reward splits. account-update/report + bootstrap still to port.</div></div>
+          <span class="status st-prog">In progress · vote/comment/follow done</span>
+        </div>
+        <div class="rec">
+          <div class="ix">2</div>
+          <div><div class="rt">Move Instagram + Meta tokens to api</div><div class="rd">Dual-auth, web cross-post proxies to api, token-fallback + pre-flight media check + carousel select/skip. Web moderator force-post still to port.</div></div>
+          <span class="status st-done">Done · 2026-06</span>
+        </div>
+        <div class="rec">
+          <div class="ix">3</div>
+          <div><div class="rt">Retire /api/v1/*</div><div class="rd">Zero internal consumers, full v2 parity confirmed. Now emitting Deprecation/Sunset headers + usage logging; delete the 15 route files after a no-traffic window.</div></div>
+          <span class="status st-prog">In progress</span>
+        </div>
+        <div class="rec">
+          <div class="ix">4</div>
+          <div><div class="rt">Keep heavy work off Vercel + prefer edge runtime</div><div class="rd">Large uploads already use edge runtime (pinata-mobile, 135&nbsp;MB) to dodge the 4.5&nbsp;MB serverless body limit.</div></div>
+          <span class="status st-done">Done</span>
+        </div>
+        <div class="rec">
+          <div class="ix">5</div>
+          <div><div class="rt">Vercel firewall on skatehive.app</div><div class="rd">Managed bot rules challenge programmatic /api calls; handled with a targeted WAF bypass for 3 mobile paths, made largely moot by #2.</div></div>
+          <span class="status st-done">Done</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap ft">
+    <span>SKATEHIVE // INFRASTRUCTURE MAP</span>
+    <span>Sources: API_ARCHITECTURE.md · sql/migrations · skatehive-api · mobileapp</span>
+    <span>Snapshot · 2026-06</span>
+  </div>
+</footer>
+
+<script>
+/* ---------------- DATABASE SCHEMA DATA ---------------- */
+const PK="pk",FK="fk",UQ="uq";
+function c(n,t,flags){return {n,t,flags:flags||[]};}
+
+const userbase = {
+  groups:[
+    {label:"Core identity",tables:[
+      {name:"userbase_users",desc:"One row per account. Every email / wallet / Farcaster / Hive sign-up maps here.",cols:[
+        c("id","uuid",[PK]),c("handle","text",[UQ]),c("display_name","text"),c("avatar_url","text"),
+        c("cover_url","text"),c("bio","text"),c("location","text"),
+        c("status","text · active|merged"),c("onboarding_step","int"),
+        c("created_at","timestamptz"),c("updated_at","timestamptz")],
+        rel:"Parent of nearly everything — referenced by sessions, identities, keys, soft posts/votes, sponsorships."},
+      {name:"userbase_auth_methods",desc:"Login credentials: email magic-link, passkey, future OAuth.",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK]),c("type","text · email_magic|passkey"),
+        c("identifier","text · UQ(type,id)"),c("secret_hash","text"),c("verified_at","timestamptz"),
+        c("created_at","timestamptz"),c("last_used_at","timestamptz")],
+        rel:"user_id → userbase_users.id · ON DELETE CASCADE"},
+      {name:"userbase_sessions",desc:"Active 30-day refresh tokens. Bearer (mobile) and cookie (web) hash to the same rows.",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK]),c("refresh_token_hash","text",[UQ]),
+        c("device_id","text"),c("user_agent","text"),c("created_at","timestamptz"),
+        c("expires_at","timestamptz"),c("revoked_at","timestamptz")],
+        rel:"user_id → userbase_users.id · ON DELETE CASCADE"},
+      {name:"userbase_identities",desc:"Linked Hive / EVM / Farcaster identities. Hive handles globally unique; EVM/FC may repeat.",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK]),c("type","text · hive|evm|farcaster"),
+        c("handle","text"),c("address","text"),c("external_id","text · FID"),
+        c("is_primary","bool"),c("verified_at","timestamptz"),c("metadata","jsonb"),
+        c("is_sponsored","bool"),c("sponsor_user_id","uuid",[FK]),c("created_at","timestamptz")],
+        rel:"user_id → users.id (CASCADE) · sponsor_user_id → users.id (SET NULL) · UQ on lower(handle) where type=hive"},
+      {name:"userbase_hive_keys",desc:"AES-256-GCM-encrypted posting keys for direct posting without Keychain popups.",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK,UQ]),c("hive_username","text"),
+        c("encrypted_posting_key","text"),c("encryption_iv","text"),c("encryption_auth_tag","text"),
+        c("key_type","text · sponsored|user_provided"),c("created_at","timestamptz"),
+        c("updated_at","timestamptz"),c("last_used_at","timestamptz")],
+        rel:"user_id → users.id (CASCADE, one key/user) · clients can read metadata, never the ciphertext"},
+      {name:"userbase_identity_challenges",desc:"Short-lived (15 min) signature nonces for verifying an identity link.",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK]),c("type","text"),c("identifier","text"),
+        c("nonce","text"),c("message","text"),c("created_at","timestamptz"),
+        c("expires_at","timestamptz"),c("consumed_at","timestamptz")],
+        rel:"user_id → users.id · ON DELETE CASCADE"},
+      {name:"userbase_magic_links",desc:"Single-use email magic-link tokens (web passwordless login).",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK]),c("identifier","text · email"),
+        c("token_hash","text",[UQ]),c("created_at","timestamptz"),c("expires_at","timestamptz"),
+        c("consumed_at","timestamptz")],
+        rel:"user_id → users.id · ON DELETE CASCADE"},
+      {name:"userbase_email_otps",desc:"Hashed one-time codes for mobile email login (api.skatehive.app). Attempt-capped.",cols:[
+        c("id","uuid",[PK]),c("email","text"),c("code_hash","text · sha256"),c("attempts","int"),
+        c("expires_at","timestamptz"),c("consumed_at","timestamptz"),c("created_at","timestamptz")],
+        rel:"No FK — keyed by email. The mobile counterpart to web magic-links."}
+    ]},
+    {label:"Social actions — attribution for shared-account activity",tables:[
+      {name:"userbase_soft_posts",desc:"Maps a post broadcast via @skateuser back to its real lite-account author.",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK]),c("author","text · skateuser"),
+        c("permlink","text · UQ(author,permlink)"),c("title","text"),c("type","text · post|comment|snap"),
+        c("status","text · queued|broadcasted|failed"),c("tx_id","text"),c("error","text"),
+        c("safe_user","text · HMAC"),c("metadata","jsonb"),c("broadcasted_at","timestamptz"),
+        c("created_at","timestamptz")],
+        rel:"user_id → users.id (CASCADE) · UQ(author,permlink) · feed joins on (author,permlink) to overlay the real skater"},
+      {name:"userbase_soft_votes",desc:"Maps a vote cast via @skateuser back to its real lite-account voter.",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK]),c("author","text"),c("permlink","text"),
+        c("weight","int · -10000..10000"),c("status","text · queued|broadcasted|failed"),
+        c("error","text"),c("metadata","jsonb"),c("broadcasted_at","timestamptz"),c("created_at","timestamptz")],
+        rel:"user_id → users.id (CASCADE) · UQ(user_id,author,permlink) — one vote per user per post"}
+    ]},
+    {label:"Sponsorship · Instagram · spots",tables:[
+      {name:"userbase_sponsorships",desc:"OG users sponsor a real Hive account for a lite user. pending → processing → completed.",cols:[
+        c("id","uuid",[PK]),c("lite_user_id","uuid",[FK,UQ]),c("sponsor_user_id","uuid",[FK]),
+        c("hive_username","text"),c("cost_type","text · hive_transfer|account_token"),
+        c("cost_amount","numeric(10,3)"),c("hive_tx_id","text"),
+        c("status","text · pending|…|completed"),c("error_message","text"),
+        c("completed_at","timestamptz"),c("created_at","timestamptz")],
+        rel:"lite_user_id → users.id (CASCADE, one/user) · sponsor_user_id → users.id (SET NULL)"},
+      {name:"userbase_instagram_posts",desc:"Tracks each Hive post cross-posted to the shared @skatehive Instagram. Dedupes + rate-limits.",cols:[
+        c("id","uuid",[PK]),c("user_id","uuid",[FK]),c("hive_author","text"),
+        c("hive_permlink","text · UQ(author,permlink)"),c("ig_media_type","text · IMAGE|REELS"),
+        c("ig_container_id","text"),c("ig_media_id","text"),c("ig_permalink","text"),
+        c("caption","text"),c("image_url","text"),c("video_url","text"),
+        c("status","text · queued|published|failed"),c("error","text"),
+        c("published_at","timestamptz"),c("created_at","timestamptz")],
+        rel:"user_id → users.id (SET NULL) · UQ(hive_author,hive_permlink) — each post cross-posts once"},
+      {name:"spotmap_spots",desc:"Cache of skate spots from Hive 'skatespot' posts + a Google My Maps KML feed, for the /map view.",cols:[
+        c("id","uuid",[PK]),c("source","text · hive|google_my_maps"),c("source_id","text · UQ(source,id)"),
+        c("name","text"),c("description","text"),c("lat","double"),c("lng","double"),
+        c("address","text"),c("thumbnail","text"),c("images","jsonb"),
+        c("hive_author","text"),c("hive_permlink","text"),c("hive_created","timestamptz"),
+        c("kml_feature_id","text"),c("synced_at","timestamptz"),c("updated_at","timestamptz")],
+        rel:"No RLS — public read via /api/spotmap. Upserted on (source, source_id). Synthetic author 'skatehive-map' fills Google rows."}
+    ]}
+  ]
+};
+
+const haf = [
+  {name:"accounts",cols:"name · reputation · json_metadata · posting_metadata · followers · followings · created_at · last_post · reward_*_balance · vesting_withdraw_rate · proxy",powers:"Profile pages, leaderboard recompute, account lookup."},
+  {name:"balances",cols:"account_name · hive · hbd · vests · hp_equivalent · hive_savings · hbd_savings",powers:"Balance endpoints, HP for leaderboard points."},
+  {name:"comments",cols:"author · permlink · parent_author · parent_permlink · category · body · title · created · json_metadata · tags · pending_payout_value · total_payout_value · curator_payout_value",powers:"Feed & snaps (parent_permlink LIKE 'snap-container-%'), trending, highest-paid, profile post counts."},
+  {name:"operation_effective_comment_vote_view",cols:"voter · author · permlink · weight · rshares · timestamp · pending_payout",powers:"Vote counts on posts, engagement scoring for the leaderboard."},
+  {name:"follows",cols:"follower_name · following_name",powers:"Followers / following lists, community follower counts."},
+  {name:"delegations",cols:"delegator · delegatee · vests · hp_equivalent",powers:"Delegation-adjusted HP in the leaderboard."},
+  {name:"community_subs",cols:"account_name · community_name",powers:"Members of the SkateHive community (hive-173115) — the leaderboard's universe of users."},
+  {name:"mutes / blacklists",cols:"muter_name · muted_name  /  blacklister_name · blacklisted_name",powers:"Muted & blacklisted lists (/api/v2/muted, /blacklisted)."}
+];
+
+const lead = {
+  cols:[
+    c("hive_author","text",[PK]),c("points","numeric · final rank score"),c("hive_balance","numeric"),
+    c("hp_balance","numeric · HP"),c("hbd_balance","numeric"),c("hbd_savings_balance","numeric"),
+    c("has_voted_in_witness","bool · skatehive"),c("eth_address","text"),c("gnars_votes","numeric · DAO"),
+    c("skatehive_nft_balance","numeric"),c("max_voting_power_usd","numeric"),c("post_count","numeric · weekly score"),
+    c("giveth_donations_usd","numeric"),c("last_post","timestamp"),c("last_updated","timestamp")
+  ]
+};
+
+/* ---------------- RENDER ---------------- */
+function badge(f){const m={pk:["PK","b-pk"],fk:["FK","b-fk"],uq:["UQ","b-uq"]};const x=m[f];return `<span class="badge ${x[1]}">${x[0]}</span>`;}
+function colRow(col){
+  const isFk=col.flags.includes(FK);
+  const badges=col.flags.map(badge).join("");
+  return `<div class="col${isFk?' fk':''}"><span class="cn">${col.n}</span>${badges}<span class="ct">${col.t}</span></div>`;
+}
+function tableCard(t){
+  return `<div class="tcard">
+    <div class="th"><div class="tname">${t.name}</div><div class="tdesc">${t.desc}</div></div>
+    <div class="cols">${t.cols.map(colRow).join("")}</div>
+    ${t.rel?`<div class="rel">↳ ${t.rel}</div>`:""}
+  </div>`;
+}
+
+const zones = document.getElementById("db-zones");
+
+/* userbase zone */
+let ub = `<div class="zone user reveal">
+  <div class="zone-head">
+    <span class="zone-badge">Supabase · aaxhnehcjyvtgrlnyhcp</span>
+    <div><h3 class="zh">Userbase</h3><div class="meta">SkateHive's own identity graph · shared by api + web · 13 tables, all RLS-forced (service role)</div></div>
+  </div>`;
+userbase.groups.forEach(g=>{
+  ub += `<div class="group-label">${g.label}</div><div class="grid g3">${g.tables.map(tableCard).join("")}</div>`;
+});
+ub += `</div>`;
+
+/* haf zone */
+let hf = `<div class="zone haf reveal" style="margin-top:22px">
+  <div class="zone-head">
+    <span class="zone-badge">External · HAF Postgres (read-only)</span>
+    <div><h3 class="zh">HAFSQL</h3><div class="meta">A live, read-only SQL mirror of the Hive blockchain · api only · never migrated</div></div>
+  </div>
+  <div class="kv" style="margin-top:6px">
+    ${haf.map(t=>`<div class="row"><div class="k">${t.name}</div><div class="v"><span class="mono" style="color:var(--muted);font-size:12px">${t.cols}</span><br><span style="color:#c7ccba">${t.powers}</span></div></div>`).join("")}
+  </div>
+  <div class="note" style="border-left-color:var(--blue);background:rgba(86,167,225,.06)">The feed query filters <code class="mono">comments</code> by <code class="mono">parent_permlink SIMILAR TO 'snap-container-%'</code> to pull SkateHive snaps, then joins <code class="mono">accounts</code> for reputation and <code class="mono">operation_effective_comment_vote_view</code> for votes.</div>
+</div>`;
+
+/* leaderboard zone */
+let lb = `<div class="zone lead reveal" style="margin-top:22px">
+  <div class="zone-head">
+    <span class="zone-badge">Supabase · akjnjktnghfutbfeijug</span>
+    <div><h3 class="zh">Leaderboard</h3><div class="meta">One precomputed ranking row per skater · api reads, a Mac Mini recomputes it off-Vercel</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:6px">
+    <div class="tcard">
+      <div class="th"><div class="tname" style="color:var(--magenta)">leaderboard</div><div class="tdesc">Component metrics + a final <code class="mono">points</code> score, refreshed in batches of 50 (oldest first).</div></div>
+      <div class="cols">${lead.cols.map(colRow).join("")}</div>
+    </div>
+    <div>
+      <h3 style="font-size:14px;color:var(--magenta);margin-bottom:12px;font-family:var(--mono);letter-spacing:.08em">POINTS FORMULA</h3>
+      <div class="formula">
+        <span class="op">+</span> hive_balance × 0.1 <span class="cap">[cap 1000]</span><br>
+        <span class="op">+</span> hp_balance × 0.5 <span class="cap">[cap 12000]</span><br>
+        <span class="op">+</span> gnars_votes × 30<br>
+        <span class="op">+</span> skatehive_nft_balance × 50<br>
+        <span class="op">+</span> witness_vote ? 1000 : 0<br>
+        <span class="op">+</span> hbd_savings × 0.2 <span class="cap">[cap 1000]</span><br>
+        <span class="op">+</span> post_count × 0.1 <span class="cap">[cap 3000]</span><br>
+        <span class="op">+</span> max_voting_power_usd × 1000<br>
+        <span class="op">+</span> eth_wallet ? 5000 : <span class="neg">−2000</span><br>
+        <span class="op">+</span> giveth_usd × 5 <span class="cap">[cap 5000]</span><br>
+        <span class="neg">−</span> min(days_since_last_post, 100)<br>
+        <span style="color:var(--muted)">→ max(points, 0)</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5">Fed by HAFSQL balances + Ethereum reads (Alchemy: GNARS, NFTs), the Giveth API, and Hive RPC. Recomputed by <code class="mono">scripts/recompute-leaderboard.ts</code> on a launchd timer; Vercel only serves the cached result via <code class="mono">/api/v2/leaderboard</code>.</p>
+    </div>
+  </div>
+</div>`;
+
+zones.innerHTML = ub + hf + lb;
+
+/* ---------------- reveal on scroll ---------------- */
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(!reduce && "IntersectionObserver" in window){
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}});},{threshold:.08});
+  document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
+}else{
+  document.querySelectorAll(".reveal").forEach(el=>el.classList.add("in"));
+}
+</script>
