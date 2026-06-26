@@ -89,3 +89,4 @@ apps/skatehive-dashboard/
 services/skatehive-api/
 services/skatehive-video-transcoder/
 services/skatehive-instagram-downloader/
+/skatehive-backups/
