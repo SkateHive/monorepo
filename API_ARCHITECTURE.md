@@ -184,9 +184,14 @@ Consequences observed in practice:
    are now **thin proxies that forward to api** (the `userbase_refresh` cookie value is sent
    as `Authorization: Bearer`, since the api hive routes auth via `getBearerUserId`). api
    gained `comment_options`/beneficiaries support so proxied comments keep their reward
-   splits. **Still to port:** `account-update`, `report`, and `bootstrap` (mobile depends on
-   web's bootstrap). See `docs/superpowers/{specs,plans}/2026-06-26-userbase-unification-phase2*`
-   and `docs/userbase-phase1-findings.md`.
+   splits. The web only ever duplicated **vote/comment/follow** — all now proxied — so the
+   duplicated **write-core is fully unified**. (`account-update`, `report`, `notifications`,
+   `check-username`, `upload-image` are **api-only**; the web never had them.) **Remaining:**
+   `bootstrap` still lives on web and mobile depends on it; the soft-vote `queued→broadcasted`
+   lifecycle resolved itself (web no longer writes soft-votes). Also fixed: the soft-post feed
+   overlay now masks **replies** (was a pre-existing client gap), and api `comment` honors
+   `body.type` so proxied snaps keep `type:"snap"`. See
+   `docs/superpowers/{specs,plans}/2026-06-26-userbase-unification-phase2*`.
 2. **Move Instagram (+ Meta tokens) to `api.skatehive.app`.** ✅ **Done (2026-06)** —
    dual-auth (signature or userbase session), web user cross-post proxies to api,
    token-fallback + pre-flight media check + carousel select/skip. Web force-post
