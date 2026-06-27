@@ -424,7 +424,7 @@
           <ul>
             <li>Server signs with the shared <code>@skateuser</code> key</li>
             <li>A <code>userbase_soft_posts</code> / <code>_soft_votes</code> row records the real author</li>
-            <li>The feed overlays their name, avatar &amp; profile on the post</li>
+            <li>The feed overlays their name, avatar &amp; profile on the post <strong>and on replies</strong></li>
             <li>Works forever — upgrading is optional</li>
           </ul>
         </div>
@@ -446,7 +446,7 @@
         <div class="step"><div class="num">02</div><div class="t">Resolve user</div><div class="s">api hashes the token, finds the <code>userbase_sessions</code> row, resolves the real user.</div></div>
         <div class="step"><div class="num">03</div><div class="t">Sign &amp; broadcast</div><div class="s">Server signs the vote with the shared key and broadcasts to Hive immediately.</div></div>
         <div class="step"><div class="num">04</div><div class="t">Record attribution</div><div class="s">A <code>userbase_soft_votes</code> row links the real user to <code>(author, permlink)</code>.</div></div>
-        <div class="step"><div class="num">05</div><div class="t">Overlay in feed</div><div class="s">The feed joins soft rows back in and shows the real skater, not <code>@skateuser</code>.</div></div>
+        <div class="step"><div class="num">05</div><div class="t">Overlay in feed</div><div class="s">The feed joins soft rows back in and shows the real skater (posts <strong>and replies</strong>), not <code>@skateuser</code>.</div></div>
       </div>
       <div class="note reveal"><b>Not a queue.</b> Broadcasts are synchronous — a soft row is attribution, not a job. No background workers, runs on Vercel's free tier. The four entry points (email · EVM · Farcaster · Hive Keychain) are all equal citizens; the entry point never limits what you can do.</div>
     </div>
@@ -519,7 +519,7 @@
         <div class="rec">
           <div class="ix">1</div>
           <div><div class="rt">Unify userbase into one backend</div><div class="rd">api.skatehive.app is the single owner of the write-core. Web <code class="mono">hive/vote/comment/follow</code> now proxy to it (cookie→Bearer); api gained beneficiaries (comment_options) so comment keeps reward splits. account-update/report + bootstrap still to port.</div></div>
-          <span class="status st-prog">In progress · vote/comment/follow done</span>
+          <span class="status st-prog">Live · vote/comment/follow proxied (rest pending)</span>
         </div>
         <div class="rec">
           <div class="ix">2</div>
@@ -550,7 +550,7 @@
   <div class="wrap ft">
     <span>SKATEHIVE // INFRASTRUCTURE MAP</span>
     <span>Sources: API_ARCHITECTURE.md · sql/migrations · skatehive-api · mobileapp</span>
-    <span>Snapshot · 2026-06</span>
+    <span>Snapshot · 2026-06-26 · userbase write-core unified on api</span>
   </div>
 </footer>
 
