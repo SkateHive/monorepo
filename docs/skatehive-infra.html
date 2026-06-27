@@ -475,10 +475,10 @@
 
       <div class="grid g2 reveal" style="margin-bottom:22px">
         <div class="authcard">
-          <div class="hd"><span class="pill bear">Mobile</span><h3 style="font-size:16px">spans both backends</h3></div>
+          <div class="hd"><span class="pill bear">Mobile</span><h3 style="font-size:16px">almost entirely on api</h3></div>
           <ul>
-            <li><b style="color:var(--lime)">api.skatehive.app</b> — feed, videos, balance, profile, leaderboard, spotmap, transcode, and all userbase auth + server-custody hive actions</li>
-            <li><b style="color:var(--blue)">skatehive.app</b> — no API calls anymore; only the caption permalink text points there</li>
+            <li><b style="color:var(--lime)">api.skatehive.app</b> — feed, videos, balance, profile, leaderboard, spotmap, transcode, and all userbase auth (OTP/signup) + server-custody hive actions. <strong>Does NOT call bootstrap</strong> (that's a web browser flow).</li>
+            <li><b style="color:var(--blue)">skatehive.app</b> — one best-effort call left: <code class="mono">spotmap/sync-one</code> (refresh the spot cache after posting); otherwise just the caption permalink text</li>
             <li>Classic key accounts encrypt the WIF on-device (PBKDF2 + AES-256, PIN/biometric); lite accounts hold only an opaque Bearer token</li>
           </ul>
         </div>
