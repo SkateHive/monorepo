@@ -518,8 +518,8 @@
       <div class="recs reveal">
         <div class="rec">
           <div class="ix">1</div>
-          <div><div class="rt">Unify userbase into one backend</div><div class="rd">api.skatehive.app is the single owner of the write-core. Web <code class="mono">hive/vote/comment/follow</code> now proxy to it (cookie→Bearer); api gained beneficiaries (comment_options) so comment keeps reward splits. account-update/report + bootstrap still to port.</div></div>
-          <span class="status st-prog">Live · vote/comment/follow proxied (rest pending)</span>
+          <div><div class="rt">Unify userbase into one backend</div><div class="rd">api.skatehive.app is the single owner of the write-core. Web <code class="mono">hive/vote/comment/follow</code> (the only routes web ever duplicated) now proxy to it (cookie→Bearer); api gained beneficiaries (comment_options) so comment keeps reward splits. account-update/report/etc. are api-only; bootstrap is a browser-only login flow (mobile doesn't call it) — both correctly stay where they are. Mobile's only web call left: best-effort spotmap sync.</div></div>
+          <span class="status st-done">Done · write-core unified on api</span>
         </div>
         <div class="rec">
           <div class="ix">2</div>

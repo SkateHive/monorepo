@@ -94,8 +94,10 @@ The **web app + identity/feature** backend.
 - **`api.skatehive.app`** (most of the app): feed/videos/balance/profile/leaderboard
   (`lib/api.ts`, `lib/constants.ts API_BASE_URL`), all userbase auth + server-custody
   hive actions (`lib/userbase/api.ts`, `lib/posting.ts`), spotmap, transcode.
-- **`skatehive.app`**: mobile makes no API calls there anymore (only the caption
-  **permalink text** points at it). See the Instagram status below.
+- **`skatehive.app`**: mobile's only API call there is the best-effort
+  `POST /api/spotmap/sync-one` (refresh the spot cache after posting a spot); otherwise just
+  the caption **permalink text** points at it. **No userbase/auth/bootstrap calls to web.**
+  See the Instagram status below.
 
 > **Instagram cross-posting — status (2026-06):**
 > - **One implementation on `api.skatehive.app`**: `/api/instagram/post` +
@@ -137,7 +139,7 @@ No outbound calls to skatehive.app.
 | Session transport | **Bearer token** | **httpOnly cookie** | `userbase_sessions` (interchangeable rows) |
 | Hive vote/comment/follow | server-signs (Bearer) | server-signs (cookie) | `userbase_soft_posts/_votes` |
 | Profile / identities / keys / sponsorship / IG | — | ✅ | `userbase_*` |
-| Bootstrap (Hive→userbase) | — | ✅ (mobile now depends on it) | `userbase_users/_identities` |
+| Bootstrap (Hive/EVM/FC browser login) | — | ✅ (web-only; **mobile does NOT call it** — verified) | `userbase_users/_identities` |
 
 Consequences observed in practice:
 - **Double implementation, drift risk.** Session creation, hive broadcast, signup
@@ -187,8 +189,11 @@ Consequences observed in practice:
    splits. The web only ever duplicated **vote/comment/follow** — all now proxied — so the
    duplicated **write-core is fully unified**. (`account-update`, `report`, `notifications`,
    `check-username`, `upload-image` are **api-only**; the web never had them.) **Remaining:**
-   `bootstrap` still lives on web and mobile depends on it; the soft-vote `queued→broadcasted`
-   lifecycle resolved itself (web no longer writes soft-votes). Also fixed: the soft-post feed
+   `bootstrap` (Hive/EVM/Farcaster **browser** login) stays on web — **mobile does NOT call it**
+   (verified: zero refs; mobile auth is api OTP/signup), so there's no coupling left to undo.
+   The soft-vote `queued→broadcasted` lifecycle resolved itself (web no longer writes
+   soft-votes). The only residual mobile→web call is the best-effort `spotmap/sync-one`. Also
+   fixed: the soft-post feed
    overlay now masks **replies** (was a pre-existing client gap), and api `comment` honors
    `body.type` so proxied snaps keep `type:"snap"`. See
    `docs/superpowers/{specs,plans}/2026-06-26-userbase-unification-phase2*`.
