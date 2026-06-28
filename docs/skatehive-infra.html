@@ -298,8 +298,8 @@
         <div class="stat"><div class="n">2</div><div class="l">Client apps</div></div>
         <div class="stat"><div class="n">2</div><div class="l">Backends</div></div>
         <div class="stat"><div class="n">3</div><div class="l">Databases</div></div>
-        <div class="stat"><div class="n">~165</div><div class="l">API routes</div></div>
-        <div class="stat"><div class="n">13</div><div class="l">Userbase tables</div></div>
+        <div class="stat"><div class="n">~150</div><div class="l">API routes (v1 retired)</div></div>
+        <div class="stat"><div class="n">13</div><div class="l">Userbase-DB tables</div></div>
       </div>
     </div>
   </section>
@@ -485,7 +485,7 @@
         <div class="authcard">
           <div class="hd"><span class="pill cook">Web</span><h3 style="font-size:16px">proxies the write-core</h3></div>
           <ul>
-            <li><b style="color:var(--lime)">hive/vote, comment &amp; follow now proxy to api</b> — the web routes forward the session (cookie value sent as Bearer); api is the single owner of the broadcast + soft rows</li>
+            <li><b style="color:var(--lime)">hive/vote, comment &amp; follow now proxy to api</b> — the web routes forward the session (cookie value sent as Bearer); api is the single owner of the broadcast + soft rows. (vote/comment are thin proxies; <code class="mono">follow</code> is a smart proxy — it does the follow/unfollow toggle read on web, then delegates the broadcast.)</li>
             <li>The <em>client</em> fetches read data (feed, leaderboard, highest-paid) from <b style="color:var(--lime)">api.skatehive.app</b></li>
             <li>Still owns the browser-only flows: identities (EVM/Farcaster), encrypted keys, sponsorships, merge, magic-link, bootstrap</li>
           </ul>
