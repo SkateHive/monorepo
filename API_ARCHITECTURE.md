@@ -181,10 +181,11 @@ Consequences observed in practice:
 ## 6. Recommendations (status)
 
 1. **Unify `userbase` into one backend** (`api.skatehive.app` is the owner).
-   🔸 **In progress (2026-06-26)** — Phase 1 proved the secrets are identical and that api
+   ✅ **Done (2026-06)** — Phase 1 proved the secrets are identical and that api
    resolves both transports. Phase 2 cutover: the web `hive/{vote,comment,follow}` routes
    are now **thin proxies that forward to api** (the `userbase_refresh` cookie value is sent
-   as `Authorization: Bearer`, since the api hive routes auth via `getBearerUserId`). api
+   as `Authorization: Bearer`); the api userbase routes were standardized on the dual
+   `resolveUserbaseUserId` (accepts Bearer or cookie), so there's one auth resolver. api
    gained `comment_options`/beneficiaries support so proxied comments keep their reward
    splits. The web only ever duplicated **vote/comment/follow** — all now proxied — so the
    duplicated **write-core is fully unified**. (`account-update`, `report`, `notifications`,
