@@ -201,10 +201,11 @@ Consequences observed in practice:
    dual-auth (signature or userbase session), web user cross-post proxies to api,
    token-fallback + pre-flight media check + carousel select/skip. Web force-post
    (moderator carousel) still on web — port later to fully retire web's IG libs.
-3. **Retire `/api/v1/*`.** 🔸 **In progress** — confirmed zero internal consumers + full
-   v2 parity. Now emitting `Deprecation`/`Sunset` headers + usage logging via
-   `middleware.ts`; delete the 15 route files (and the `v1/auth.ts` util the middleware
-   imports — extract it first) after a no-traffic observation window.
+3. **Retire `/api/v1/*`.** ✅ **Done (2026-06)** — confirmed zero internal/app consumers
+   (mobile + web use v2 only) + full v2 parity, so deleted outright (no monitoring window
+   needed): the 15 route files, the v1-only `middleware.ts` (auth gate + deprecation
+   headers died with it), and the v1 paths in `swagger-optimized.ts`. Verified in prod:
+   `/api/v1/*` → 404, `/api/v2/*` → 200. Removed 15 serverless functions.
 4. **Keep heavy/long work off Vercel** (already done) and prefer **edge runtime** for
    pure proxy/streaming routes. ✅
 5. **Vercel firewall** on skatehive.app challenges programmatic `/api/*` calls (managed

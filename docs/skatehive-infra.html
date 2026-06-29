@@ -512,7 +512,7 @@
       </div>
 
       <div class="note reveal" style="border-left-color:var(--red);background:rgba(255,92,92,.06);margin-top:0;margin-bottom:26px">
-        <b style="color:var(--red)">Split-brain userbase</b> <span style="color:var(--lime)">(now being resolved — see #1)</span>. Session creation, hive broadcast, and soft-post writes existed as parallel code in both repos. The duplicated write-core (vote/comment/follow) has been consolidated onto api via proxies; account-update/report + bootstrap still live in both.
+        <b style="color:var(--red)">Split-brain userbase</b> <span style="color:var(--lime)">(resolved — see #1)</span>. Session creation, hive broadcast, and soft-post writes used to be parallel code in both repos. The duplicated write-core (vote/comment/follow) — the only routes web ever duplicated — is now consolidated onto api via proxies. account-update/report are api-only; bootstrap is a web browser-only login flow (mobile doesn't call it) — so nothing duplicated remains.
       </div>
 
       <div class="recs reveal">
@@ -528,8 +528,8 @@
         </div>
         <div class="rec">
           <div class="ix">3</div>
-          <div><div class="rt">Retire /api/v1/*</div><div class="rd">Zero internal consumers, full v2 parity confirmed. Now emitting Deprecation/Sunset headers + usage logging; delete the 15 route files after a no-traffic window.</div></div>
-          <span class="status st-prog">In progress</span>
+          <div><div class="rt">Retire /api/v1/*</div><div class="rd">Done (2026-06): zero internal/app consumers (mobile + web use v2 only), full v2 parity. Deleted the 15 route files + the v1-only middleware + the v1 swagger paths — verified in prod (<code class="mono">/api/v1/*</code> → 404, <code class="mono">/api/v2/*</code> → 200). −15 serverless functions.</div></div>
+          <span class="status st-done">Done · v1 deleted</span>
         </div>
         <div class="rec">
           <div class="ix">4</div>
